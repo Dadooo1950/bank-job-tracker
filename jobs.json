@@ -1,6 +1,38 @@
 {
-  "updatedAt": null,
+  "updatedAt": "2026-11-19T14:23:29.591270+00:00",
   "jobs": [],
-  "sources": [],
-  "note": "Automatski dohvat još nije pokrenut. Pokreni GitHub Actions workflow Update official bank vacancies."
+  "sources": [
+    {
+      "bank": "ING",
+      "status": "no_structured_jobs_found",
+      "count": 0,
+      "source": "https://careers.ing.com/en/search_jobs?country=Netherlands"
+    },
+    {
+      "bank": "Rabobank",
+      "status": "fetch_error",
+      "count": 0,
+      "source": "https://rabobank.jobs/en/jobs/?country=nl",
+      "detail": "HTTP Error 403: Forbidden"
+    },
+    {
+      "bank": "ABN AMRO",
+      "status": "no_structured_jobs_found",
+      "count": 0,
+      "source": "https://www.werkenbijabnamro.nl/vacatures"
+    },
+    {
+      "bank": "NIBC",
+      "status": "no_structured_jobs_found",
+      "count": 0,
+      "source": "https://nibc.com/careers/vacancies"
+    },
+    {
+      "bank": "ASN Bank",
+      "status": "no_structured_jobs_found",
+      "count": 0,
+      "source": "https://asnbank.career.emply.com/nl/vacatures"
+    }
+  ],
+  "note": "Only official-source JobPosting structured data is imported. Empty results do not mean the bank has no vacancies; some career pages render jobs dynamically."
 }
