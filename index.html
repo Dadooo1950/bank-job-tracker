@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#11101d"><meta name="description" content="Besplatni tracker poslova u nizozemskim bankama">
+  <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-512.png"><link rel="stylesheet" href="styles.css">
+  <title>Bank Job Tracker</title>
+</head>
+<body>
+  <header class="topbar"><div class="brand"><img src="icons/icon-512.png" alt=""/><div><strong>BANK JOB TRACKER</strong><small>Netherlands • Career radar</small></div></div><div class="top-actions"><span id="lastSync" class="sync">Demo data</span><button id="installBtn" class="ghost" hidden>Install app</button></div></header>
+  <main>
+    <section class="hero"><div><p class="eyebrow">YOUR NEXT MOVE</p><h1>Find your <em>next level.</em></h1><p class="sub">Jedno mjesto za relevantne karijerne prilike u nizozemskim bankama.</p></div><div class="hero-stat"><span id="totalCount">0</span><small>oglasa u prikazu</small></div></section>
+    <section class="stats"><article><span id="newCount">0</span><small>NEW JOBS</small></article><article><span id="strongCount">0</span><small>80%+ MATCH</small></article><article><span id="expiringCount">0</span><small>ISTJEČU USKORO</small></article><article><span id="expiredCount">0</span><small>ISTEKLI</small></article></section>
+    <section class="toolbar"><div class="section-heading"><div><p class="eyebrow">OPPORTUNITY BOARD</p><h2>Prilike za tebe</h2></div><button id="refreshBtn" class="primary">⟳ Osvježi oglase</button></div>
+      <div class="filters"><label>Prikaz<select id="newFilter"><option value="all">Svi oglasi</option><option value="new">Samo novi</option><option value="unseen">Nepregledani</option><option value="saved">Spremljeni</option><option value="active">Samo aktivni</option><option value="expired">Istekli</option></select></label>
+      <label>Banka<select id="bankFilter"><option value="all">Sve banke</option><option>ING</option><option>Rabobank</option><option>ABN AMRO</option><option>NIBC</option><option>ASN Bank</option></select></label>
+      <label>Minimalni match<select id="matchFilter"><option value="0">Sve ocjene</option><option value="70">70%+</option><option value="80">80%+</option><option value="90">90%+</option></select></label>
+      <label>Sortiranje<select id="sortBy"><option value="date">Najnoviji prvo</option><option value="match">Najbolji Match prvo</option><option value="deadline">Rok prijave – najbliži</option></select></label>
+      </div>
+      <div class="filter-bottom"><span id="resultLabel">0 rezultata</span><span class="legend"><i class="dot new"></i> Novo <i class="dot soon"></i> Rok se približava <i class="dot expired"></i> Isteklo</span></div>
+    </section>
+    <section id="jobs" class="jobs"></section>
+    <section class="notice"><strong>Napomena o prvoj verziji</strong><p>Ovo je početna PWA verzija s demonstracijskim oglasima i lokalnim spremanjem. Još nije spojena na automatske izvore banaka. Ne prikazuje demo oglase kao stvarne natječaje. Sljedeći korak je izrada i testiranje besplatnog automatiziranog dohvaćanja službenih oglasa.</p></section>
+  </main>
+  <footer> BANK JOB TRACKER <span>Built for the next move.</span></footer>
+  <script src="app.js"></script>
+</body></html>
