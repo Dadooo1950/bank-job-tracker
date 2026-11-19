@@ -1,5 +1,5 @@
-const CACHE = 'bank-job-tracker-v11';
-const CORE = ['./','./index.html','./styles.css','./app.js','./manifest.webmanifest'];
+const CACHE = 'bank-job-tracker-v12-gta-cv';
+const CORE = ['./','./index.html','./styles.css','./app.js','./cv-tools.js','./cv-tools.css','./manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
 });
