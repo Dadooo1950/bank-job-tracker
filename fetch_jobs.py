@@ -1,11 +1,15 @@
+
 #!/usr/bin/env python3
-"""Fetch publicly exposed JobPosting JSON-LD from official bank career pages.
-Only structured vacancies are imported; no synthetic/sample records are created.
-"""
-import json, re, sys, time
+"""Fetch verified job postings embedded in official bank career pages."""
+
+import json
+import re
+import time
+import html
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
+from urllib.error import HTTPError, URLError
+from urllib.parse import urljoin, urlparse
 
 SOURCES = [
     ("ING", "https://careers.ing.com/en/search_jobs?country=Netherlands"),
@@ -15,69 +19,309 @@ SOURCES = [
     ("ASN Bank", "https://asnbank.career.emply.com/nl/vacatures"),
 ]
 
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 Chrome/130.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/json",
+    "Accept-Language": "en-US,en;q=0.9,nl;q=0.8",
+}
+
+
 def fetch(url):
-    req = Request(url, headers={"User-Agent":"Mozilla/5.0 (compatible; BankJobTracker/1.0; +https://github.com/Dadooo1950/bank-job-tracker)", "Accept":"text/html,application/xhtml+xml"})
-    with urlopen(req, timeout=25) as r:
-        return r.read().decode("utf-8", "replace")
+    request = Request(url, headers=HEADERS)
+    with urlopen(request, timeout=30) as response:
+        return response.read().decode("utf-8", "replace")
 
-def walk(x):
-    if isinstance(x, dict):
-        typ=x.get("@type", [])
-        if isinstance(typ,str): typ=[typ]
-        if "JobPosting" in typ: yield x
-        for v in x.values(): yield from walk(v)
-    elif isinstance(x,list):
-        for v in x: yield from walk(v)
 
-def clean(v):
-    if isinstance(v,dict): return v.get("name") or v.get("@id") or ""
-    if isinstance(v,list): return ", ".join(filter(None,(clean(z) for z in v)))
-    return str(v or "")
+def clean(value):
+    if isinstance(value, dict):
+        return (
+            value.get("name")
+            or value.get("@id")
+            or value.get("value")
+            or ""
+        )
 
-def iso_date(v):
-    if not v: return ""
-    return str(v)[:10]
+    if isinstance(value, list):
+        return ", ".join(
+            filter(None, (clean(item) for item in value))
+        )
 
-def parse_jobs(bank, source, html):
-    found=[]
-    for raw in re.findall(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', html, re.I|re.S):
-        try: data=json.loads(raw.strip())
-        except Exception: continue
-        for j in walk(data):
-            title=clean(j.get("title"))
-            url=clean(j.get("url")) or clean(j.get("sameAs"))
-            if url.startswith("/"):
-                from urllib.parse import urljoin
-                url=urljoin(source,url)
-            if not title or not url.startswith("http"): continue
-            loc=j.get("jobLocation", [])
-            if not isinstance(loc,list): loc=[loc]
-            places=[]
-            for item in loc:
-                addr=item.get("address",{}) if isinstance(item,dict) else {}
-                if isinstance(addr,dict):
-                    places.append(" ".join(filter(None,[clean(addr.get("addressLocality")),clean(addr.get("addressRegion")),clean(addr.get("addressCountry"))])))
-            location="; ".join(filter(None,places)) or "Netherlands (check vacancy)"
-            if places and not re.search(r"netherlands|nederland|\bNL\b", location, re.I): continue
-            desc=re.sub(r"<[^>]+>"," ",clean(j.get("description")))
-            desc=re.sub(r"\s+"," ",desc).strip()[:6000]
-            org=j.get("hiringOrganization",{})
-            name=clean(org.get("name")) if isinstance(org,dict) else bank
-            found.append({"id":url.split("?")[0].rstrip("/").lower(),"bank":bank,"title":title,"location":location,"level":clean(j.get("experienceRequirements")) or clean(j.get("employmentType")) or "Professional","published":iso_date(j.get("datePosted")),"deadline":iso_date(j.get("validThrough")),"url":url,"description":desc,"skills":[],"source":source,"employer":name,"verifiedStructuredData":True})
+    if value is None:
+        return ""
+
+    return str(value).strip()
+
+
+def walk(value):
+    """Find JobPosting objects anywhere inside nested JSON."""
+    if isinstance(value, dict):
+        types = value.get("@type", [])
+
+        if isinstance(types, str):
+            types = [types]
+
+        if "JobPosting" in types:
+            yield value
+
+        for child in value.values():
+            yield from walk(child)
+
+    elif isinstance(value, list):
+        for child in value:
+            yield from walk(child)
+
+
+def extract_json_scripts(page):
+    """Read JSON-LD and other JSON script blocks."""
+    pattern = re.compile(
+        r"<script\b([^>]*)>(.*?)</script\s*>",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    for attributes, content in pattern.findall(page):
+        attrs = attributes.lower()
+
+        is_json = (
+            "application/ld+json" in attrs
+            or "application/json" in attrs
+            or "__next_data__" in attrs
+        )
+
+        if not is_json:
+            continue
+
+        content = content.strip()
+
+        if not content:
+            continue
+
+        try:
+            yield json.loads(content)
+        except (ValueError, TypeError):
+            continue
+
+
+def get_location(job):
+    locations = job.get("jobLocation", [])
+
+    if not isinstance(locations, list):
+        locations = [locations]
+
+    places = []
+
+    for item in locations:
+        if not isinstance(item, dict):
+            continue
+
+        address = item.get("address", {})
+
+        if isinstance(address, dict):
+            parts = [
+                clean(address.get("addressLocality")),
+                clean(address.get("addressRegion")),
+                clean(address.get("addressCountry")),
+            ]
+
+            location = ", ".join(filter(None, parts))
+
+            if location:
+                places.append(location)
+
+    if not places:
+        return "Netherlands (check vacancy)", False
+
+    result = "; ".join(places)
+
+    is_netherlands = bool(
+        re.search(
+            r"netherlands|nederland|\bNL\b",
+            result,
+            re.IGNORECASE,
+        )
+    )
+
+    return result, is_netherlands
+
+
+def parse_jobs(bank, source, page):
+    found = []
+
+    for data in extract_json_scripts(page):
+        for job in walk(data):
+            title = clean(job.get("title"))
+
+            raw_url = (
+                clean(job.get("url"))
+                or clean(job.get("sameAs"))
+            )
+
+            if not title or not raw_url:
+                continue
+
+            url = urljoin(source, raw_url)
+
+            parsed = urlparse(url)
+
+            if parsed.scheme != "https":
+                continue
+
+            if not parsed.netloc:
+                continue
+
+            # Do not accept links to unrelated websites.
+            source_domain = urlparse(source).hostname or ""
+            job_domain = parsed.hostname or ""
+
+            if not (
+                job_domain == source_domain
+                or job_domain.endswith("." + source_domain)
+            ):
+                continue
+
+            location, is_netherlands = get_location(job)
+
+            # If a location is explicitly provided, it must
+            # identify the Netherlands.
+            if not is_netherlands and not location.startswith(
+                "Netherlands (check"
+            ):
+                continue
+
+            description = html.unescape(
+                clean(job.get("description"))
+            )
+
+            description = re.sub(
+                r"<[^>]*>", " ", description
+            )
+
+            description = re.sub(
+                r"\s+", " ", description
+            ).strip()[:6000]
+
+            organization = job.get("hiringOrganization", {})
+            employer = (
+                clean(organization.get("name"))
+                if isinstance(organization, dict)
+                else bank
+            )
+
+            job_id = url.split("?")[0].rstrip("/").lower()
+
+            found.append({
+                "id": job_id,
+                "bank": bank,
+                "title": title,
+                "location": location,
+                "level": (
+                    clean(job.get("experienceRequirements"))
+                    or clean(job.get("employmentType"))
+                    or "Professional"
+                ),
+                "published": str(job.get("datePosted") or "")[:10],
+                "deadline": str(job.get("validThrough") or "")[:10],
+                "url": url,
+                "description": description,
+                "skills": [],
+                "source": source,
+                "employer": employer,
+                "verifiedStructuredData": True,
+            })
+
     return found
 
-all_jobs=[]; statuses=[]
-for bank,url in SOURCES:
-    try:
-        html=fetch(url)
-        jobs=parse_jobs(bank,url,html)
-        all_jobs.extend(jobs)
-        statuses.append({"bank":bank,"status":"ok" if jobs else "no_structured_jobs_found","count":len(jobs),"source":url})
-    except Exception as e:
-        statuses.append({"bank":bank,"status":"fetch_error","count":0,"source":url,"detail":str(e)[:240]})
-    time.sleep(1)
-# Stable deduplication by canonical URL.
-unique={j["id"]:j for j in all_jobs}
-result={"updatedAt":datetime.now(timezone.utc).isoformat(),"jobs":list(unique.values()),"sources":statuses,"note":"Only official-source JobPosting structured data is imported. Empty results do not mean the bank has no vacancies; some career pages render jobs dynamically."}
-with open("jobs.json","w",encoding="utf-8") as f: json.dump(result,f,ensure_ascii=False,indent=2)
-print(json.dumps({"jobs":len(result["jobs"]),"sources":statuses},ensure_ascii=False,indent=2))
+
+def main():
+    all_jobs = []
+    statuses = []
+
+    for bank, source in SOURCES:
+        print("Checking:", bank)
+
+        try:
+            page = fetch(source)
+            jobs = parse_jobs(bank, source, page)
+
+            all_jobs.extend(jobs)
+
+            statuses.append({
+                "bank": bank,
+                "status": (
+                    "ok" if jobs else "no_jobs_found_in_page_data"
+                ),
+                "count": len(jobs),
+                "source": source,
+            })
+
+        except HTTPError as error:
+            statuses.append({
+                "bank": bank,
+                "status": "http_error",
+                "count": 0,
+                "source": source,
+                "detail": str(error.code),
+            })
+
+        except (URLError, TimeoutError, OSError) as error:
+            statuses.append({
+                "bank": bank,
+                "status": "connection_error",
+                "count": 0,
+                "source": source,
+                "detail": str(error)[:240],
+            })
+
+        except Exception as error:
+            statuses.append({
+                "bank": bank,
+                "status": "parse_error",
+                "count": 0,
+                "source": source,
+                "detail": str(error)[:240],
+            })
+
+        time.sleep(1)
+
+    # Remove duplicate vacancies.
+    unique_jobs = {
+        job["id"]: job
+        for job in all_jobs
+    }
+
+    result = {
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
+        "jobs": list(unique_jobs.values()),
+        "sources": statuses,
+        "note": (
+            "Only verified JobPosting records from official "
+            "career pages are included. Empty results do not "
+            "mean that a bank has no vacancies. Some career "
+            "pages load vacancies dynamically or block requests."
+        ),
+    }
+
+    with open("jobs.json", "w", encoding="utf-8") as file:
+        json.dump(
+            result,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    print(
+        json.dumps(
+            {
+                "total_jobs": len(result["jobs"]),
+                "sources": statuses,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()
