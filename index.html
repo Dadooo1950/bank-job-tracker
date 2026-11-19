@@ -7,21 +7,21 @@
   <title>Bank Job Tracker</title>
 </head>
 <body>
-  <header class="topbar"><div class="brand"><img src="icons/icon-512.png" alt=""/><div><strong>BANK JOB TRACKER</strong><small>Netherlands • Career radar</small></div></div><div class="top-actions"><span id="lastSync" class="sync">Demo data</span><button id="installBtn" class="ghost" hidden>Install app</button></div></header>
+  <header class="topbar"><div class="brand"><img src="icons/icon-512.png" alt=""/><div><strong>BANK JOB TRACKER</strong><small>Netherlands • Career radar</small></div></div><div class="top-actions"><span id="lastSync" class="sync">Učitavanje izvora…</span><button id="installBtn" class="ghost" hidden>Instaliraj aplikaciju</button></div></header>
   <main>
-    <section class="hero"><div><p class="eyebrow">YOUR NEXT MOVE</p><h1>Find your <em>next level.</em></h1><p class="sub">Jedno mjesto za relevantne karijerne prilike u nizozemskim bankama.</p></div><div class="hero-stat"><span id="totalCount">0</span><small>oglasa u prikazu</small></div></section>
-    <section class="stats"><article><span id="newCount">0</span><small>NEW JOBS</small></article><article><span id="strongCount">0</span><small>80%+ MATCH</small></article><article><span id="expiringCount">0</span><small>ISTJEČU USKORO</small></article><article><span id="expiredCount">0</span><small>ISTEKLI</small></article></section>
+    <section class="hero"><div class="hero-copy"><p class="eyebrow">YOUR NEXT MOVE</p><h1>Find your <em>next level.</em></h1><p class="sub">Tvoja sljedeća karijerna prilika u nizozemskom bankarstvu počinje ovdje.</p><div class="hero-banks"><span>ING</span><span>RABOBANK</span><span>ABN AMRO</span><span>NIBC</span><span>ASN BANK</span></div></div><div class="hero-stat"><span id="totalCount">0</span><small>provjerenih oglasa</small></div></section>
+    <section class="stats"><article><span id="newCount">0</span><small>NOVI OGLASI</small></article><article><span id="strongCount">0</span><small>80%+ MATCH</small></article><article><span id="expiringCount">0</span><small>ROK USKORO</small></article><article><span id="expiredCount">0</span><small>ISTEKLI</small></article></section>
     <section class="toolbar"><div class="section-heading"><div><p class="eyebrow">OPPORTUNITY BOARD</p><h2>Prilike za tebe</h2></div><button id="refreshBtn" class="primary">⟳ Osvježi oglase</button></div>
       <div class="filters"><label>Prikaz<select id="newFilter"><option value="all">Svi oglasi</option><option value="new">Samo novi</option><option value="unseen">Nepregledani</option><option value="saved">Spremljeni</option><option value="active">Samo aktivni</option><option value="expired">Istekli</option></select></label>
       <label>Banka<select id="bankFilter"><option value="all">Sve banke</option><option>ING</option><option>Rabobank</option><option>ABN AMRO</option><option>NIBC</option><option>ASN Bank</option></select></label>
       <label>Minimalni match<select id="matchFilter"><option value="0">Sve ocjene</option><option value="70">70%+</option><option value="80">80%+</option><option value="90">90%+</option></select></label>
-      <label>Sortiranje<select id="sortBy"><option value="date">Najnoviji prvo</option><option value="match">Najbolji Match prvo</option><option value="deadline">Rok prijave – najbliži</option></select></label>
-      </div>
+      <label>Sortiranje<select id="sortBy"><option value="date">Najnoviji prvo</option><option value="match">Najbolji Match prvo</option><option value="deadline">Rok prijave – najbliži</option></select></label></div>
       <div class="filter-bottom"><span id="resultLabel">0 rezultata</span><span class="legend"><i class="dot new"></i> Novo <i class="dot soon"></i> Rok se približava <i class="dot expired"></i> Isteklo</span></div>
     </section>
     <section id="jobs" class="jobs"></section>
-    <section class="notice"><strong>Napomena o prvoj verziji</strong><p>Ovo je početna PWA verzija s demonstracijskim oglasima i lokalnim spremanjem. Još nije spojena na automatske izvore banaka. Ne prikazuje demo oglase kao stvarne natječaje. Sljedeći korak je izrada i testiranje besplatnog automatiziranog dohvaćanja službenih oglasa.</p></section>
+    <section class="sources-panel"><div><p class="eyebrow">LIVE SOURCE STATUS</p><h2>Status izvora</h2></div><div id="sourceStatus" class="source-grid"><p>Provjeravam službene izvore…</p></div><p class="source-note">Oglasi se prikazuju samo kada ih automatizirani dohvat pronađe na službenim stranicama. Ako izvor ne izloži strukturirane podatke, status će to jasno prikazati — nećemo izmišljati oglase ni rokove.</p></section>
+    <section class="notice"><strong>Kako radi praćenje</strong><p>GitHub Actions provjerava službene stranice radnim danom u 07:17 i 15:17 po UTC-u. Gumb „Osvježi oglase” ponovno učitava zadnje spremljene podatke; za novo pretraživanje koristi se ručno pokretanje workflowa u GitHubu. Match je transparentna procjena ključnih riječi, a ne AI procjena ili jamstvo da ispunjavaš sve uvjete.</p></section>
   </main>
-  <footer> BANK JOB TRACKER <span>Built for the next move.</span></footer>
+  <footer>BANK JOB TRACKER <span>Built for the next move.</span></footer>
   <script src="app.js"></script>
 </body></html>

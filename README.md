@@ -1,28 +1,28 @@
-# Bank Job Tracker v2 — starter PWA
+# Bank Job Tracker v3
 
-A no-paid-API progressive web app starter for tracking Netherlands banking vacancies.
+Free static PWA for tracking official vacancies at ING, Rabobank, ABN AMRO, NIBC and ASN Bank.
 
-## Current status
-- Responsive PWA shell and generated app icon.
-- Local browser storage for viewed/saved jobs.
-- Filters: new, unseen, saved, active, expired; bank; minimum match.
-- Sorting: newest first, match score, nearest deadline.
-- Deterministic keyword-based profile match (not an AI claim).
-- Deadline state calculation.
-- Five bank sources listed in the interface, but live ingestion is NOT connected yet.
-- Sample records are clearly marked DEMO and are not verified live vacancies.
+## What is new
+- Neon sunset home-page artwork and responsive visual refresh.
+- Removes all sample/demo vacancies. The app only displays records present in `jobs.json`.
+- Keyword-based match scoring based on the user's stated banking/reporting/data experience.
+- Per-bank source status and honest empty/error states.
+- Scheduled GitHub Actions workflow (`.github/workflows/update-jobs.yml`) runs on weekdays at 06:17 and 14:17 UTC, and can be run manually.
 
-## Run locally
-Serve this folder over HTTP (service workers do not work from `file://`). For example, with Python installed:
+## Important ingestion limitation
+`fetch_jobs.py` currently imports only `JobPosting` JSON-LD records exposed in the HTML of each official career page. Career portals that render vacancies dynamically or block automated requests may return zero records or a fetch error. This does **not** mean the bank has no vacancies. The dashboard reports this per bank and never fabricates job records. A bank-specific public API/feed integration may be needed for portals that do not expose structured data.
 
-```bash
-python -m http.server 8000
-```
+The script does not guess application deadlines; it uses `validThrough` only when the official structured data provides it. It does not automatically mark a job closed based only on its age.
 
-Then open `http://localhost:8000`.
+## Setup
+1. Upload the contents of this folder to the root of the GitHub repository, replacing files when prompted. Keep the `.github/workflows` folder and `assets/hero-sunset.png` in their exact paths.
+2. In GitHub, open **Settings → Actions → General → Workflow permissions** and allow **Read and write permissions**. Save.
+3. Open **Actions → Update official bank vacancies → Run workflow** to start the first fetch.
+4. Wait for the workflow to finish, then refresh the GitHub Pages app.
+5. Scheduled runs happen weekdays at 06:17 and 14:17 UTC.
 
-## Important next phase
-Implement and test a free scheduled ingestion pipeline using official career-site feeds/APIs or permitted public listings. Normalize each vacancy to a stable ID, preserve first-seen dates, and only mark a vacancy expired/closed after checking the source page. Never infer an application deadline from a crawl date.
+## Match scoring
+This is a transparent keyword heuristic, not an AI evaluation and not a guarantee of qualification. Review each vacancy's full requirements before applying. The profile intentionally does not claim professional Power BI dashboard or Python production experience.
 
-## Free hosting direction
-Static PWA can be hosted on a free static hosting tier. Scheduled ingestion can use a free CI scheduler within its current quota. Push notifications require an additional push endpoint and browser permission; this starter does not yet claim to send background push alerts.
+## Hosting
+The frontend remains on GitHub Pages. The scheduled fetch runs in GitHub Actions. No paid AI API key or external paid service is required. GitHub's free-tier quotas and terms apply.
