@@ -1,38 +1,153 @@
 {
-  "updatedAt": "2026-11-19T14:36:16.381582+00:00",
-  "jobs": [],
+  "updatedAt": "2026-11-19T15:00:18.183668+00:00",
+  "jobs": [
+    {
+      "id": "d69b4872bfd7",
+      "bank": "ING",
+      "title": "Performance marketing specialist ING Private Banking & Wealth Management",
+      "location": "Netherlands, Amsterdam",
+      "level": "Not specified",
+      "published": "2026-11-19",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/performance-marketing-specialist-ing-private-banking-and-wealth-management/3121/46240514432",
+      "description": "A major Dutch multinational bank headquartered in Amsterdam, serving over 40 million customers worldwide. ING is one of the Netherlands' largest employers in financial services, recognised for its digital innovation, direct banking model, and strong presence in both retail and wholesale banking.",
+      "skills": [],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": null,
+      "facts": {}
+    },
+    {
+      "id": "e4403cca7486",
+      "bank": "ING",
+      "title": "Internship Front End Engineering— InfraPort DMS",
+      "location": "Netherlands, Amsterdam",
+      "level": "intern",
+      "published": "2026-11-19",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/internship-front-end-engineering-infraport-dms/3121/47030313280",
+      "description": "Builds user interfaces and front-end features for a data management system. Suits a student with a strong background in JavaScript, HTML, and CSS, and experience with React or Next.js.",
+      "skills": [
+        "JavaScript",
+        "TypeScript",
+        "React",
+        "Next.js",
+        "CSS",
+        "HTML"
+      ],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": "Builds user interfaces and front-end features for a data management system. Suits a student with a strong background in JavaScript, HTML, and CSS, and experience with React or Next.js.",
+      "facts": {
+        "seniority": "intern",
+        "posting_language": "en",
+        "dutch_required": null,
+        "visa_or_relocation_support": null,
+        "work_mode": "hybrid",
+        "salary": "€700 per week",
+        "skills": [
+          "JavaScript",
+          "TypeScript",
+          "React",
+          "Next.js",
+          "CSS",
+          "HTML"
+        ]
+      }
+    },
+    {
+      "id": "9acf51d5683d",
+      "bank": "ING",
+      "title": "Meewerkstage Event Management",
+      "location": "Netherlands, Amsterdam",
+      "level": "Not specified",
+      "published": "2026-11-18",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/meewerkstage-event-management/3121/47025687936",
+      "description": "Organizes events and sponsorships for a large Dutch bank. Suits a student in marketing, communication or a related field with some experience in event organization and administration.",
+      "skills": [
+        "event management",
+        "marketing",
+        "communication",
+        "administration"
+      ],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": "Organizes events and sponsorships for a large Dutch bank. Suits a student in marketing, communication or a related field with some experience in event organization and administration.",
+      "facts": {
+        "seniority": null,
+        "posting_language": "nl",
+        "dutch_required": true,
+        "visa_or_relocation_support": null,
+        "work_mode": null,
+        "salary": null,
+        "skills": [
+          "event management",
+          "marketing",
+          "communication",
+          "administration"
+        ]
+      }
+    },
+    {
+      "id": "c7063da62380",
+      "bank": "ING",
+      "title": "Front Office Quant – Risk Factor Modelling",
+      "location": "Netherlands, Amsterdam",
+      "level": "Not specified",
+      "published": "2026-11-17",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/front-office-quant-risk-factor-modelling/3121/46990070528",
+      "description": "A major Dutch multinational bank headquartered in Amsterdam, serving over 40 million customers worldwide. ING is one of the Netherlands' largest employers in financial services, recognised for its digital innovation, direct banking model, and strong presence in both retail and wholesale banking.",
+      "skills": [
+        "quantitative modelling",
+        "derivatives pricing",
+        "risk management",
+        "programming"
+      ],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": null,
+      "facts": {
+        "seniority": null,
+        "posting_language": "en",
+        "dutch_required": null,
+        "visa_or_relocation_support": null,
+        "work_mode": null,
+        "salary": null,
+        "skills": [
+          "quantitative modelling",
+          "derivatives pricing",
+          "risk management",
+          "programming"
+        ]
+      }
+    }
+  ],
   "sources": [
     {
       "bank": "ING",
-      "status": "no_jobs_found_in_page_data",
-      "count": 0,
-      "source": "https://careers.ing.com/en/search_jobs?country=Netherlands"
+      "status": "ok",
+      "count": 4,
+      "source": "GigSignal public jobs API"
     },
     {
       "bank": "Rabobank",
-      "status": "http_error",
+      "status": "not_found_in_public_feed",
       "count": 0,
-      "source": "https://rabobank.jobs/en/jobs/?country=nl",
-      "detail": "403"
+      "source": "GigSignal public jobs API"
     },
     {
-      "bank": "ABN AMRO",
-      "status": "no_jobs_found_in_page_data",
+      "bank": "Rabobank official careers page",
+      "status": "fetch_error",
       "count": 0,
-      "source": "https://www.werkenbijabnamro.nl/vacatures"
-    },
-    {
-      "bank": "NIBC",
-      "status": "no_jobs_found_in_page_data",
-      "count": 0,
-      "source": "https://nibc.com/careers/vacancies"
-    },
-    {
-      "bank": "ASN Bank",
-      "status": "no_jobs_found_in_page_data",
-      "count": 0,
-      "source": "https://asnbank.career.emply.com/nl/vacatures"
+      "source": "https://rabobank.jobs/nl/vacatures/",
+      "detail": "HTTP Error 403: Forbidden"
     }
   ],
-  "note": "Only verified JobPosting records from official career pages are included. Empty results do not mean that a bank has no vacancies. Some career pages load vacancies dynamically or block requests."
+  "note": "Listings are collected from the public GigSignal feed and Rabobank's official careers page when accessible. The public feed contains jobs observed in the last two days, so it is not a complete list of every open vacancy. The published field may represent first-seen date, not the employer's original publication date."
 }
