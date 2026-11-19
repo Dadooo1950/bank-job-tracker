@@ -149,5 +149,5 @@
       "detail": "HTTP Error 403: Forbidden"
     }
   ],
-  "note": "Listings are collected from the public GigSignal feed and Rabobank's official careers page when accessible. The public feed contains jobs observed in the last two days, so it is not a complete list of every open vacancy. The published field may represent first-seen date, not the employer's original publication date."
+  "note": "Listings are collected from the public GigSignal feed (location=amsterdam is documented as a Netherlands-wide shortcut) and Rabobank's official careers page when accessible. The public feed contains jobs observed in the last two days, so it is not a complete list of every open vacancy. The published field may represent first-seen date, not the employer's original publication date. Full vacancy text is not always included; open the employer's page to confirm requirements and application status."
 }

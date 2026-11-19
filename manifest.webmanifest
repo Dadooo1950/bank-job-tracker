@@ -1,1 +1,19 @@
-{"name":"Bank Job Tracker Netherlands","short_name":"Bank Jobs","lang":"hr","start_url":"./","scope":"./","display":"standalone","background_color":"#0c0d16","theme_color":"#0c0d16"}
+{
+  "name": "Bank Job Tracker — Netherlands Career Radar",
+  "short_name": "Bank Jobs",
+  "description": "Netherlands banking vacancies, local CV matching and application documents.",
+  "lang": "hr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080a18",
+  "theme_color": "#080a18",
+  "icons": [
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
