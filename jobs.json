@@ -1,38 +1,38 @@
 {
-  "updatedAt": "2026-11-19T14:29:52.161641+00:00",
+  "updatedAt": "2026-11-19T14:36:16.381582+00:00",
   "jobs": [],
   "sources": [
     {
       "bank": "ING",
-      "status": "no_structured_jobs_found",
+      "status": "no_jobs_found_in_page_data",
       "count": 0,
       "source": "https://careers.ing.com/en/search_jobs?country=Netherlands"
     },
     {
       "bank": "Rabobank",
-      "status": "fetch_error",
+      "status": "http_error",
       "count": 0,
       "source": "https://rabobank.jobs/en/jobs/?country=nl",
-      "detail": "HTTP Error 403: Forbidden"
+      "detail": "403"
     },
     {
       "bank": "ABN AMRO",
-      "status": "no_structured_jobs_found",
+      "status": "no_jobs_found_in_page_data",
       "count": 0,
       "source": "https://www.werkenbijabnamro.nl/vacatures"
     },
     {
       "bank": "NIBC",
-      "status": "no_structured_jobs_found",
+      "status": "no_jobs_found_in_page_data",
       "count": 0,
       "source": "https://nibc.com/careers/vacancies"
     },
     {
       "bank": "ASN Bank",
-      "status": "no_structured_jobs_found",
+      "status": "no_jobs_found_in_page_data",
       "count": 0,
       "source": "https://asnbank.career.emply.com/nl/vacatures"
     }
   ],
-  "note": "Only official-source JobPosting structured data is imported. Empty results do not mean the bank has no vacancies; some career pages render jobs dynamically."
+  "note": "Only verified JobPosting records from official career pages are included. Empty results do not mean that a bank has no vacancies. Some career pages load vacancies dynamically or block requests."
 }
