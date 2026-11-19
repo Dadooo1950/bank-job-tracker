@@ -1,82 +1,31 @@
-const BANKS = ['ING', 'Rabobank', 'ABN AMRO', 'NIBC', 'ASN Bank'];
-const profile = {
-  strong: ['sql','sas','ifrs 9','ecl','expected credit loss','credit risk','portfolio analysis','portfolio analytics','risk reporting','regulatory reporting','management reporting','data quality','reconciliation','oracle','db2','power query','banking','provisioning','npe','forbearance','data controls'],
-  supporting: ['python','power bi','data analytics','dashboard','data requirements','process improvement','testing','rwa','pd','rating','stage']
-};
+'use strict';
+(() => {
 const $ = id => document.getElementById(id);
-let jobs = [], sourceStatuses = [];
-let seen = new Set(JSON.parse(localStorage.getItem('bjt_seen') || '[]'));
-let saved = new Set(JSON.parse(localStorage.getItem('bjt_saved') || '[]'));
-let firstSeen = JSON.parse(localStorage.getItem('bjt_first_seen') || '{}');
-function scoreJob(job) {
-  const text = (job.title + ' ' + (job.description || '') + ' ' + (job.skills || []).join(' ')).toLowerCase();
-  const max = profile.strong.length * 5 + profile.supporting.length * 2;
-  let earned = 0, matched = [];
-  for (const term of profile.strong) if (text.includes(term)) { earned += 5; matched.push(term); }
-  for (const term of profile.supporting) if (text.includes(term)) { earned += 2; matched.push(term); }
-  let penalty = 0;
-  if (/credit risk model|model development|quantitative model validation|advanced python|machine learning engineer/.test(text)) penalty += 15;
-  if (/dutch.{0,25}(required|mandatory)|native dutch|fluent dutch/.test(text)) penalty += 10;
-  return { score: Math.max(0, Math.min(99, Math.round(earned / max * 100) - penalty)), matched: matched.slice(0, 7) };
-}
-function dateValue(s) { if (!s) return null; const d = new Date(s.length === 10 ? s + 'T23:59:59' : s); return Number.isNaN(d.getTime()) ? null : d; }
-function state(job) { const d = dateValue(job.deadline); if (d && d < new Date()) return 'expired'; if (d && (d - new Date()) / 86400000 <= 7) return 'soon'; return 'active'; }
-function isNew(job) { return !firstSeen[job.id]; }
-function esc(s = '') { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function persist() { localStorage.setItem('bjt_seen', JSON.stringify([...seen])); localStorage.setItem('bjt_saved', JSON.stringify([...saved])); localStorage.setItem('bjt_first_seen', JSON.stringify(firstSeen)); }
-function renderSources() {
-  const labels = { ok: 'Podaci dohvaćeni', no_structured_jobs_found: 'Nema čitljivih strukturiranih oglasa', fetch_error: 'Dohvat nije uspio', not_found_in_public_feed: 'Nema oglasa u javnom feedu' };
-  $('sourceStatus').innerHTML = (sourceStatuses || []).map(s => `<a class="source-item" href="${esc(s.source)}" target="_blank" rel="noopener"><span class="source-name">${esc(s.bank)}</span><span class="source-state ${s.status === 'ok' ? 'ok' : 'warn'}">${labels[s.status] || esc(s.status)}</span><small>${Number(s.count || 0)} oglasa ↗</small></a>`).join('') || '<p>Workflow još nije pokrenut. Pokreni ga u GitHubu → Actions.</p>';
-}
-function render() {
-  const scored = jobs.map(j => ({...j, ...scoreJob(j)}));
-  $('totalCount').textContent = scored.length;
-  $('newCount').textContent = scored.filter(isNew).length;
-  $('strongCount').textContent = scored.filter(j => j.score >= 80 && state(j) !== 'expired').length;
-  $('expiringCount').textContent = scored.filter(j => state(j) === 'soon').length;
-  $('expiredCount').textContent = scored.filter(j => state(j) === 'expired').length;
-  let list = scored.filter(j => {
-    const f = $('newFilter').value, b = $('bankFilter').value, m = +$('matchFilter').value;
-    if (b !== 'all' && j.bank !== b) return false;
-    if (j.score < m) return false;
-    if (f === 'new' && !isNew(j)) return false;
-    if (f === 'unseen' && seen.has(j.id)) return false;
-    if (f === 'saved' && !saved.has(j.id)) return false;
-    if (f === 'active' && !['active','soon'].includes(state(j))) return false;
-    if (f === 'expired' && state(j) !== 'expired') return false;
-    return true;
-  });
-  const sort = $('sortBy').value;
-  list.sort((a,b) => sort === 'match' ? b.score-a.score : sort === 'deadline' ? (dateValue(a.deadline)||new Date('2999-01-01'))-(dateValue(b.deadline)||new Date('2999-01-01')) : new Date(b.published||0)-new Date(a.published||0));
-  $('resultLabel').textContent = `${list.length} rezultata`;
-  $('jobs').innerHTML = list.length ? list.map(j => {
-    const st = state(j), d = dateValue(j.deadline), days = d ? Math.ceil((d-new Date())/86400000) : null;
-    return `<article class="job"><div class="job-top"><div><div class="bank">${esc((j.bank||'').toUpperCase())} ${isNew(j)?'<span class="new-pill">● NEW</span>':''}</div><h3>${esc(j.title)}</h3><div class="meta"><span>⌖ ${esc(j.location||'Netherlands')}</span><span>▣ ${esc(j.level||'Professional')}</span><span>◷ Objavljen: ${esc(j.published||'Nepoznato')}</span></div></div><div class="match">${j.score}%<small>MATCH</small></div></div><div class="tags">${j.matched.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="job-foot"><div class="deadline ${st}">${st==='expired'?'Istekao rok':st==='soon'?`Rok za ${days} dana`:j.deadline?`Rok: ${esc(j.deadline)}`:'Rok nije objavljen'}</div><div class="job-actions"><button data-action="seen" data-id="${esc(j.id)}">${seen.has(j.id)?'Pregledano':'Označi viđeno'}</button><button data-action="save" data-id="${esc(j.id)}">${saved.has(j.id)?'★':'☆'}</button><a href="${esc(j.url)}" target="_blank" rel="noopener">Otvori ↗</a></div></div></article>`;
-  }).join('') : '<div class="empty"><strong>Trenutačno nema oglasa za odabrane filtre.</strong><p>To ne znači da banke nemaju otvorene pozicije. Pokušaj smanjiti minimalni match ili promijeniti banku.</p></div>';
-}
-['newFilter','bankFilter','matchFilter','sortBy'].forEach(id => $(id).addEventListener('change', render));
-$('jobs').addEventListener('click', e => {
-  const b = e.target.closest('button[data-action]'); if (!b) return; const id = b.dataset.id;
-  if (b.dataset.action === 'seen') { seen.add(id); firstSeen[id] = firstSeen[id] || new Date().toISOString(); }
-  if (b.dataset.action === 'save') { saved.has(id) ? saved.delete(id) : saved.add(id); }
-  persist(); render();
-});
-async function loadFeed() {
-  $('lastSync').textContent = 'Učitavanje…';
-  try {
-    const r = await fetch('./jobs.json?ts=' + Date.now(), {cache:'no-store'}); if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json(); jobs = Array.isArray(data.jobs) ? data.jobs : []; sourceStatuses = data.sources || [];
-    $('lastSync').textContent = data.updatedAt ? 'Ažurirano ' + new Date(data.updatedAt).toLocaleString('hr-HR',{dateStyle:'short',timeStyle:'short'}) : 'Čeka se prvo ažuriranje';
-    renderSources(); render();
-  } catch (e) {
-    $('lastSync').textContent = 'Feed nije dostupan';
-    $('sourceStatus').textContent = 'Nije moguće učitati status izvora.';
-    $('jobs').innerHTML = '<div class="empty">Ne mogu učitati jobs.json. Provjeri je li GitHub Pages objavio zadnju verziju.</div>';
-  }
-}
-$('refreshBtn').addEventListener('click', loadFeed);
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-let deferredPrompt; $('installBtn').hidden = true;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('installBtn').hidden = false; });
-$('installBtn').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('installBtn').hidden = true; } });
+const DEFAULT_KEYWORDS = ['sql','sas','ifrs 9','ecl','expected credit loss','credit risk','portfolio analysis','portfolio analytics','risk reporting','regulatory reporting','management reporting','data quality','reconciliation','oracle','db2','power query','banking','provisioning','npe','forbearance','data controls','data analysis','financial reporting','risk data','portfolio reporting'];
+const SUPPORT = ['python','power bi','data analytics','dashboard','data requirements','process improvement','testing','rwa','pd','rating','stage','stakeholder management','excel','automation'];
+const BANKS = ['ING','Rabobank','ABN AMRO','NIBC','ASN Bank'];
+const safeRead = (key, fallback) => { try { const v=JSON.parse(localStorage.getItem(key)); return v ?? fallback; } catch { return fallback; } };
+let jobs=[], sources=[], seen=new Set(safeRead('bjt_seen',[])), saved=new Set(safeRead('bjt_saved',[])), firstSeen=safeRead('bjt_first_seen',{}), customKeywords=safeRead('bjt_keywords',DEFAULT_KEYWORDS), toastTimer;
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const date = s => { if(!s)return null; const d=new Date(String(s).length===10?`${s}T23:59:59`:s); return Number.isNaN(d.getTime())?null:d; };
+const state = j => { const d=date(j.deadline); if(d && d < new Date()) return 'expired'; if(d && (d-new Date())/86400000<=7) return 'soon'; return 'active'; };
+const isNew = j => !firstSeen[j.id];
+function persist(){ localStorage.setItem('bjt_seen',JSON.stringify([...seen])); localStorage.setItem('bjt_saved',JSON.stringify([...saved])); localStorage.setItem('bjt_first_seen',JSON.stringify(firstSeen)); localStorage.setItem('bjt_keywords',JSON.stringify(customKeywords)); }
+function score(j){ const text=[j.title,j.description,j.gist,(j.skills||[]).join(' '),JSON.stringify(j.facts||{})].join(' ').toLowerCase(); const strong=customKeywords.filter(Boolean); const support=SUPPORT.filter(Boolean); const hits=strong.filter(k=>text.includes(k)); const extra=support.filter(k=>text.includes(k)); let value=Math.round((hits.length*5+extra.length*2)/Math.max(1,strong.length*5+support.length*2)*100); if(/credit risk model|model development|quantitative model validation|derivatives pricing|machine learning engineer/.test(text)) value-=25; if(/dutch.{0,25}(required|mandatory)|native dutch|fluent dutch/.test(text)||j.facts?.dutch_required===true) value-=15; if(/internship|intern|stage|student/.test((j.title+' '+j.level).toLowerCase())) value-=30; return {score:Math.max(0,Math.min(99,value)),matched:[...hits,...extra].slice(0,7)}; }
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2600);}
+function sourceStatus(){const labels={ok:'Feed dohvaćen',not_found_in_public_feed:'Nije pronađen u javnom feedu',no_structured_jobs_found:'Nema čitljivih oglasa',fetch_error:'Službena stranica nije dostupna',api_error:'Greška javnog feeda'}; $('sourceStatus').innerHTML=(sources.length?sources.map(s=>{const ok=s.status==='ok';const url=s.source&&/^https:\/\//.test(s.source)?s.source:null;return `<a class="source-item" ${url?`href="${esc(url)}" target="_blank" rel="noopener noreferrer"`:''}><b>${esc(s.bank||'Izvor')}</b><span class="source-state ${ok?'ok':'warn'}">${esc(labels[s.status]||s.status||'Status nepoznat')} · ${Number(s.count||0)}</span></a>`}).join(''):'<p class="muted">Feed još nema status izvora. Pokreni GitHub Actions workflow.</p>'); }
+function render(){const scored=jobs.map(j=>({...j,...score(j)})); $('totalCount').textContent=scored.length; $('newCount').textContent=scored.filter(isNew).length; $('strongCount').textContent=scored.filter(j=>j.score>=80&&state(j)!=='expired').length; $('expiringCount').textContent=scored.filter(j=>state(j)==='soon').length; $('expiredCount').textContent=scored.filter(j=>state(j)==='expired').length;
+const q=$('searchInput').value.trim().toLowerCase(), vf=$('viewFilter').value, bank=$('bankFilter').value, min=Number($('matchFilter').value); let list=scored.filter(j=>{const blob=[j.title,j.bank,j.location,j.description,(j.skills||[]).join(' ')].join(' ').toLowerCase(); if(q&&!blob.includes(q))return false;if(bank!=='all'&&j.bank!==bank)return false;if(j.score<min)return false;if(vf==='new'&&!isNew(j))return false;if(vf==='unseen'&&seen.has(j.id))return false;if(vf==='saved'&&!saved.has(j.id))return false;if(vf==='active'&&!['active','soon'].includes(state(j)))return false;if(vf==='expired'&&state(j)!=='expired')return false;return true;});
+const sort=$('sortBy').value;list.sort((a,b)=>sort==='match'?b.score-a.score:sort==='deadline'?(date(a.deadline)||new Date('2999-01-01'))-(date(b.deadline)||new Date('2999-01-01')):sort==='title'?a.title.localeCompare(b.title):new Date(b.published||0)-new Date(a.published||0)); $('resultLabel').textContent=`${list.length} od ${scored.length} oglasa`;
+$('jobs').innerHTML=list.length?list.map(j=>{const st=state(j),d=date(j.deadline),days=d?Math.ceil((d-new Date())/86400000):null;const deadline=st==='expired'?'Rok je istekao':st==='soon'?`Rok za ${days} dana`:j.deadline?`Rok: ${esc(j.deadline)}`:'Rok prijave nije objavljen';return `<article class="job-card"><div class="job-top"><div><div class="bankline">${esc((j.bank||'BANK').toUpperCase())}${isNew(j)?'<span class="new-pill">NOVO</span>':''}${seen.has(j.id)?'<span class="new-pill">PREGLEDANO</span>':''}</div><h3>${esc(j.title)}</h3><div class="job-meta"><span>⌖ ${esc(j.location||'Netherlands')}</span><span>▣ ${esc(j.level||'Razina nije navedena')}</span><span>◷ ${esc(j.published||'Datum nepoznat')}</span></div></div><div class="match-score ${j.score<50?'low':''}">${j.score}%<small>MATCH</small></div></div><div class="tag-row">${j.matched.map(t=>`<span class="tag">${esc(t)}</span>`).join('')||'<span class="tag">Malo pronađenih podudaranja</span>'}</div><div class="job-bottom"><span class="deadline ${st}">${deadline}</span><div class="job-actions"><button data-action="detail" data-id="${esc(j.id)}">Detalji</button><button data-action="seen" data-id="${esc(j.id)}">${seen.has(j.id)?'Pregledano':'Označi viđeno'}</button><button class="favorite" data-action="save" data-id="${esc(j.id)}" aria-label="Spremi oglas">${saved.has(j.id)?'★':'☆'}</button><a class="open-link" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer">Otvori oglas ↗</a></div></div></article>`;}).join(''):'<div class="empty"><b>Nema oglasa za odabrane filtre.</b><p>Pokušaj promijeniti banku, smanjiti minimalni match ili ukloniti tekst pretrage. Ako je feed prazan, to ne znači da banke nemaju otvorenih pozicija.</p></div>'; }
+function openDetail(id){const j=jobs.find(x=>String(x.id)===String(id));if(!j)return;const s=score(j),facts=j.facts||{},detail=j.description||j.gist||'Detaljan opis nije dostupan u javnom feedu.'; $('modalBody').innerHTML=`<div class="bankline">${esc(j.bank)}</div><h2 id="modalTitle">${esc(j.title)}</h2><div class="modal-facts"><div class="modal-fact"><small>Podudaranje s profilom</small><b>${s.score}%</b></div><div class="modal-fact"><small>Lokacija</small><b>${esc(j.location||'Netherlands')}</b></div><div class="modal-fact"><small>Razina</small><b>${esc(j.level||'Nije navedena')}</b></div><div class="modal-fact"><small>Objavljeno / prvi put viđeno</small><b>${esc(j.published||'Nepoznato')}</b></div><div class="modal-fact"><small>Rok prijave</small><b>${esc(j.deadline||'Nije objavljen')}</b></div><div class="modal-fact"><small>Jezik oglasa</small><b>${esc(facts.posting_language||'Nije poznato')}</b></div><div class="modal-fact"><small>Nizozemski obavezan</small><b>${facts.dutch_required===true?'Da':facts.dutch_required===false?'Ne':'Nije poznato'}</b></div><div class="modal-fact"><small>Način rada</small><b>${esc(facts.work_mode||'Nije poznato')}</b></div></div><p>${esc(detail)}</p>${(j.skills||[]).length?`<p><b>Vještine:</b> ${esc(j.skills.join(', '))}</p>`:''}<p><b>Podudarne ključne riječi:</b> ${esc(s.matched.join(', ')||'Nisu pronađene')}</p><a class="btn btn-primary" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer">Otvori službeni oglas ↗</a>`; $('detailModal').hidden=false;seen.add(j.id);firstSeen[j.id]=firstSeen[j.id]||new Date().toISOString();persist();render(); }
+async function loadFeed(){const btn=$('refreshBtn');btn.disabled=true;btn.innerHTML='<span class="spinner-inline">↻</span> Učitavam';$('lastSync').textContent='Učitavanje…';$('lastSync').classList.remove('error');try{const r=await fetch('./jobs.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const data=await r.json();if(!data||!Array.isArray(data.jobs))throw new Error('Neispravan format jobs.json');jobs=data.jobs.filter(j=>j&&j.id&&j.title&&j.url);sources=Array.isArray(data.sources)?data.sources:[];const stamp=data.updatedAt?new Date(data.updatedAt):null;$('lastSync').textContent=stamp&&!Number.isNaN(stamp.getTime())?'Ažurirano '+stamp.toLocaleString('hr-HR',{dateStyle:'short',timeStyle:'short'}):'Feed učitan';$('feedNote').textContent=data.note||'Feed prikazuje samo dohvaćene oglase. Dostupnost i uvjete uvijek provjeri na službenoj stranici poslodavca.';sourceStatus();render();}catch(e){$('lastSync').textContent='Feed nije dostupan';$('lastSync').classList.add('error');$('sourceStatus').innerHTML=`<p class="muted">Ne mogu učitati jobs.json (${esc(e.message)}). Provjeri GitHub Pages objavu.</p>`;$('jobs').innerHTML='<div class="empty"><b>Podaci o oglasima trenutačno nisu dostupni.</b><p>Aplikacija se učitala, ali datoteka jobs.json nije dostupna. Pokušaj ponovno kasnije.</p></div>'; }finally{btn.disabled=false;btn.innerHTML='<span>↻</span> Osvježi oglase';}}
+function exportCSV(){const header=['Banka','Pozicija','Lokacija','Match','Objavljeno/prvi put viđeno','Rok','URL'];const rows=jobs.map(j=>[j.bank,j.title,j.location,score(j).score+'%',j.published,j.deadline,j.url]);const csv=[header,...rows].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='bank-job-tracker-oglasi.csv';a.click();URL.revokeObjectURL(url);toast('CSV datoteka je pripremljena.');}
+['viewFilter','bankFilter','matchFilter','sortBy'].forEach(id=>$(id).addEventListener('change',render));$('searchInput').addEventListener('input',render);$('refreshBtn').addEventListener('click',loadFeed);$('exportBtn').addEventListener('click',exportCSV);
+$('jobs').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id;if(b.dataset.action==='detail'){openDetail(id);return;}if(b.dataset.action==='seen'){seen.add(id);firstSeen[id]=firstSeen[id]||new Date().toISOString();}if(b.dataset.action==='save'){saved.has(id)?saved.delete(id):saved.add(id);}persist();render();});
+$('detailModal').addEventListener('click',e=>{if(e.target.dataset.close==='true')$('detailModal').hidden=true;});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('detailModal').hidden=true;});
+$('profileKeywords').value=customKeywords.join(', ');$('saveProfileBtn').addEventListener('click',()=>{customKeywords=$('profileKeywords').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);persist();render();toast('Profil je spremljen na ovom uređaju.');});$('resetProfileBtn').addEventListener('click',()=>{$('profileKeywords').value=DEFAULT_KEYWORDS.join(', ');customKeywords=[...DEFAULT_KEYWORDS];persist();render();toast('Vraćen je zadani profil.');});
+let installPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('installBtn').hidden=false;});$('installBtn').addEventListener('click',async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installBtn').hidden=true;});
+if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 loadFeed();
+})();

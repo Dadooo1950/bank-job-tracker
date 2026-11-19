@@ -1,27 +1,49 @@
 <!doctype html>
 <html lang="hr">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#11101d"><meta name="description" content="Besplatni tracker poslova u nizozemskim bankama">
-  <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-512.png"><link rel="stylesheet" href="styles.css">
-  <title>Bank Job Tracker</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10111b"><meta name="description" content="Besplatni tracker poslova u nizozemskim bankama.">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon-512.png"><link rel="stylesheet" href="./styles.css">
+<title>Bank Job Tracker — Netherlands</title>
 </head>
 <body>
-  <header class="topbar"><div class="brand"><img src="icons/icon-512.png" alt=""/><div><strong>BANK JOB TRACKER</strong><small>Netherlands • Career radar</small></div></div><div class="top-actions"><span id="lastSync" class="sync">Učitavanje izvora…</span><button id="installBtn" class="ghost" hidden>Instaliraj aplikaciju</button></div></header>
-  <main>
-    <section class="hero"><div class="hero-copy"><p class="eyebrow">YOUR NEXT MOVE</p><h1>Find your <em>next level.</em></h1><p class="sub">Tvoja sljedeća karijerna prilika u nizozemskom bankarstvu počinje ovdje.</p><div class="hero-banks"><span>ING</span><span>RABOBANK</span><span>ABN AMRO</span><span>NIBC</span><span>ASN BANK</span></div></div><div class="hero-stat"><span id="totalCount">0</span><small>provjerenih oglasa</small></div></section>
-    <section class="stats"><article><span id="newCount">0</span><small>NOVI OGLASI</small></article><article><span id="strongCount">0</span><small>80%+ MATCH</small></article><article><span id="expiringCount">0</span><small>ROK USKORO</small></article><article><span id="expiredCount">0</span><small>ISTEKLI</small></article></section>
-    <section class="toolbar"><div class="section-heading"><div><p class="eyebrow">OPPORTUNITY BOARD</p><h2>Prilike za tebe</h2></div><button id="refreshBtn" class="primary">⟳ Osvježi oglase</button></div>
-      <div class="filters"><label>Prikaz<select id="newFilter"><option value="all">Svi oglasi</option><option value="new">Samo novi</option><option value="unseen">Nepregledani</option><option value="saved">Spremljeni</option><option value="active">Samo aktivni</option><option value="expired">Istekli</option></select></label>
-      <label>Banka<select id="bankFilter"><option value="all">Sve banke</option><option>ING</option><option>Rabobank</option><option>ABN AMRO</option><option>NIBC</option><option>ASN Bank</option></select></label>
-      <label>Minimalni match<select id="matchFilter"><option value="0">Sve ocjene</option><option value="70">70%+</option><option value="80">80%+</option><option value="90">90%+</option></select></label>
-      <label>Sortiranje<select id="sortBy"><option value="date">Najnoviji prvo</option><option value="match">Najbolji Match prvo</option><option value="deadline">Rok prijave – najbliži</option></select></label></div>
-      <div class="filter-bottom"><span id="resultLabel">0 rezultata</span><span class="legend"><i class="dot new"></i> Novo <i class="dot soon"></i> Rok se približava <i class="dot expired"></i> Isteklo</span></div>
-    </section>
-    <section id="jobs" class="jobs"></section>
-    <section class="sources-panel"><div><p class="eyebrow">LIVE SOURCE STATUS</p><h2>Status izvora</h2></div><div id="sourceStatus" class="source-grid"><p>Provjeravam službene izvore…</p></div><p class="source-note">Oglasi se prikazuju samo kada ih automatizirani dohvat pronađe na službenim stranicama. Ako izvor ne izloži strukturirane podatke, status će to jasno prikazati — nećemo izmišljati oglase ni rokove.</p></section>
-    <section class="notice"><strong>Kako radi praćenje</strong><p>GitHub Actions provjerava službene stranice radnim danom u 07:17 i 15:17 po UTC-u. Gumb „Osvježi oglase” ponovno učitava zadnje spremljene podatke; za novo pretraživanje koristi se ručno pokretanje workflowa u GitHubu. Match je transparentna procjena ključnih riječi, a ne AI procjena ili jamstvo da ispunjavaš sve uvjete.</p></section>
-  </main>
-  <footer>BANK JOB TRACKER <span>Built for the next move.</span></footer>
-  <script src="app.js"></script>
+<div class="app-shell">
+<header class="topbar">
+  <a class="brand" href="./" aria-label="Bank Job Tracker početna"><span class="brand-mark">B</span><span><b>BANK JOB TRACKER</b><small>NETHERLANDS · CAREER RADAR</small></span></a>
+  <div class="top-actions"><span id="lastSync" class="sync-pill"><i></i> Učitavanje podataka</span><button id="installBtn" class="btn btn-quiet" hidden>Instaliraj</button></div>
+</header>
+<main>
+<section class="hero">
+ <div class="hero-content"><p class="eyebrow">YOUR NEXT MOVE STARTS HERE</p><h1>Find your <em>next level.</em></h1><p class="hero-sub">Pametno praćenje karijernih prilika u nizozemskom bankarstvu. Bez pretplate. Bez izmišljenih oglasa.</p><div class="bank-chips"><span>ING</span><span>RABOBANK</span><span>ABN AMRO</span><span>NIBC</span><span>ASN BANK</span></div></div>
+ <div class="hero-side"><div class="hero-number" id="totalCount">—</div><div class="hero-caption">oglasa u feedu</div><div class="hero-side-note">Automatski osvježeni podaci</div></div>
+</section>
+<section class="stat-grid" aria-label="Sažetak oglasa">
+ <article class="stat-card"><span class="stat-icon purple">✦</span><div><b id="newCount">0</b><small>NOVI OGLASI</small></div></article>
+ <article class="stat-card"><span class="stat-icon green">◎</span><div><b id="strongCount">0</b><small>80%+ PODUDARANJE</small></div></article>
+ <article class="stat-card"><span class="stat-icon orange">◷</span><div><b id="expiringCount">0</b><small>ROK USKORO</small></div></article>
+ <article class="stat-card"><span class="stat-icon red">↗</span><div><b id="expiredCount">0</b><small>ISTEKLI ROKOVI</small></div></article>
+</section>
+<section class="board panel">
+ <div class="section-head"><div><p class="eyebrow">OPPORTUNITY BOARD</p><h2>Prilike za tebe</h2><p class="section-sub">Oglasi s provjerljivim poveznicama i transparentnom procjenom podudaranja.</p></div><button id="refreshBtn" class="btn btn-primary"><span>↻</span> Osvježi oglase</button></div>
+ <div class="search-row"><label class="searchbox"><span>⌕</span><input id="searchInput" type="search" placeholder="Pretraži naziv pozicije, vještine ili lokaciju…" autocomplete="off"></label><button id="exportBtn" class="btn btn-outline">↓ Izvezi CSV</button></div>
+ <div class="filters">
+  <label>Prikaz<select id="viewFilter"><option value="all">Svi oglasi</option><option value="new">Novi</option><option value="unseen">Nepregledani</option><option value="saved">Spremljeni</option><option value="active">Aktivni</option><option value="expired">Istekli</option></select></label>
+  <label>Banka<select id="bankFilter"><option value="all">Sve banke</option><option value="ING">ING</option><option value="Rabobank">Rabobank</option><option value="ABN AMRO">ABN AMRO</option><option value="NIBC">NIBC</option><option value="ASN Bank">ASN Bank</option></select></label>
+  <label>Minimalni match<select id="matchFilter"><option value="0">Sve ocjene</option><option value="50">50%+</option><option value="70">70%+</option><option value="80">80%+</option><option value="90">90%+</option></select></label>
+  <label>Sortiranje<select id="sortBy"><option value="match">Najbolji match</option><option value="date">Najnoviji prvo</option><option value="deadline">Rok prijave</option><option value="title">Naziv A–Ž</option></select></label>
+ </div>
+ <div class="results-bar"><span id="resultLabel">0 rezultata</span><span class="legend"><i class="dot dot-new"></i> Novo <i class="dot dot-soon"></i> Rok uskoro <i class="dot dot-expired"></i> Isteklo</span></div>
+ <div id="jobs" class="jobs-list"><div class="loading-state"><span class="spinner"></span><b>Učitavam oglase…</b><small>Čitam zadnji automatski feed.</small></div></div>
+</section>
+<section class="lower-grid">
+ <section class="panel source-panel"><div class="section-head compact"><div><p class="eyebrow">DATA TRANSPARENCY</p><h2>Status izvora</h2></div><span class="live-label">● AUTOMATSKI FEED</span></div><div id="sourceStatus" class="source-grid"><p class="muted">Provjeravam izvore…</p></div><p id="feedNote" class="fine-print">Oglasi se prikazuju samo kada ih dohvat pronađe. Prazan feed ne znači da banka nema otvorenih pozicija.</p></section>
+ <section class="panel profile-panel"><div class="section-head compact"><div><p class="eyebrow">MATCH PROFILE</p><h2>Tvoj profil</h2></div><button id="resetProfileBtn" class="text-button">Vrati zadano</button></div><p class="profile-intro">Procjena se računa lokalno na uređaju iz ključnih riječi. Ne koristi AI ni vanjski API.</p><div class="profile-tags"><span>IFRS 9 / ECL</span><span>Credit Risk Reporting</span><span>SQL / SAS</span><span>Portfolio Analysis</span><span>Oracle / DB2</span><span>Power Query</span></div><details class="profile-editor"><summary>Uredi ključne riječi profila</summary><label for="profileKeywords">Ključne riječi (odvoji zarezom)</label><textarea id="profileKeywords" rows="4"></textarea><button id="saveProfileBtn" class="btn btn-outline btn-small">Spremi profil</button></details></section>
+</section>
+<section class="notice panel"><span class="notice-icon">i</span><div><b>Kako radi aplikacija</b><p>GitHub Actions automatski pokreće dohvat radnim danom. Gumb „Osvježi oglase” učitava zadnji spremljeni feed; ne pokreće novo pretraživanje banaka. Match je okvirna procjena ključnih riječi, a ne potvrda kvalifikacija. Neki javni feedovi nisu potpuni i mogu kasniti.</p></div></section>
+</main>
+<footer><span>BANK JOB TRACKER</span><span>Built for your next move · Free & independent</span></footer>
+</div>
+<div id="detailModal" class="modal" hidden><div class="modal-backdrop" data-close="true"></div><article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="modal-close" data-close="true" aria-label="Zatvori">×</button><div id="modalBody"></div></article></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="./app.js" defer></script>
 </body></html>

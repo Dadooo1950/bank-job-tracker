@@ -1,28 +1,10 @@
-# Bank Job Tracker v3
+# Bank Job Tracker — final frontend
 
-Free static PWA for tracking official vacancies at ING, Rabobank, ABN AMRO, NIBC and ASN Bank.
+This bundle replaces the frontend files in the existing GitHub Pages project:
+`index.html`, `app.js`, `styles.css`, `sw.js`, and `manifest.webmanifest`.
 
-## What is new
-- Neon sunset home-page artwork and responsive visual refresh.
-- Removes all sample/demo vacancies. The app only displays records present in `jobs.json`.
-- Keyword-based match scoring based on the user's stated banking/reporting/data experience.
-- Per-bank source status and honest empty/error states.
-- Scheduled GitHub Actions workflow (`.github/workflows/update-jobs.yml`) runs on weekdays at 06:17 and 14:17 UTC, and can be run manually.
+Keep the existing `jobs.json`, `.github/workflows/update-jobs.yml`, `fetch_jobs.py`, `assets/hero-sunset.png`, and `icons/icon-512.png` in the repository. The existing scheduled GitHub Actions workflow continues to update `jobs.json` on weekdays. The frontend does not need an API key, paid service, or AI provider.
 
-## Important ingestion limitation
-`fetch_jobs.py` currently imports only `JobPosting` JSON-LD records exposed in the HTML of each official career page. Career portals that render vacancies dynamically or block automated requests may return zero records or a fetch error. This does **not** mean the bank has no vacancies. The dashboard reports this per bank and never fabricates job records. A bank-specific public API/feed integration may be needed for portals that do not expose structured data.
+Features: responsive dashboard, live feed loading from jobs.json, search, bank/view/match filters, sorting, keyword-based transparent CV match, seen/saved jobs in local storage, job details, CSV export, source status, editable local match keywords, installable PWA, network-first feed and versioned service-worker cache.
 
-The script does not guess application deadlines; it uses `validThrough` only when the official structured data provides it. It does not automatically mark a job closed based only on its age.
-
-## Setup
-1. Upload the contents of this folder to the root of the GitHub repository, replacing files when prompted. Keep the `.github/workflows` folder and `assets/hero-sunset.png` in their exact paths.
-2. In GitHub, open **Settings → Actions → General → Workflow permissions** and allow **Read and write permissions**. Save.
-3. Open **Actions → Update official bank vacancies → Run workflow** to start the first fetch.
-4. Wait for the workflow to finish, then refresh the GitHub Pages app.
-5. Scheduled runs happen weekdays at 06:17 and 14:17 UTC.
-
-## Match scoring
-This is a transparent keyword heuristic, not an AI evaluation and not a guarantee of qualification. Review each vacancy's full requirements before applying. The profile intentionally does not claim professional Power BI dashboard or Python production experience.
-
-## Hosting
-The frontend remains on GitHub Pages. The scheduled fetch runs in GitHub Actions. No paid AI API key or external paid service is required. GitHub's free-tier quotas and terms apply.
+Important limitations: feed completeness depends on the configured public data source and official career pages. A zero count is not proof that a bank has no open roles. Dates from a third-party feed may represent first-seen date rather than employer publication date. Always verify requirements and application status on the employer's own page.
