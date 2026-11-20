@@ -1,6 +1,84 @@
 {
-  "updatedAt": "2026-11-19T15:00:18.183668+00:00",
+  "updatedAt": "2026-11-20T07:25:04.708533+00:00",
   "jobs": [
+    {
+      "id": "f8dda8b0b4b8",
+      "bank": "ING",
+      "title": "Test engineer 3rd Party Software",
+      "location": "Netherlands, Amsterdam",
+      "level": "Not specified",
+      "published": "2026-11-19",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/test-engineer-3rd-party-software/3121/47059726656",
+      "description": "Maintains and updates mortgage application systems, implements functional updates, and develops automated regression tests. Suits a test engineer with experience in financial software, test automation, and Agile development.",
+      "skills": [
+        "Java",
+        "Selenium",
+        "Docker",
+        "Azure DevOps",
+        "Agile",
+        "Scrum"
+      ],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": "Maintains and updates mortgage application systems, implements functional updates, and develops automated regression tests. Suits a test engineer with experience in financial software, test automation, and Agile development.",
+      "facts": {
+        "seniority": null,
+        "posting_language": "nl",
+        "dutch_required": null,
+        "visa_or_relocation_support": null,
+        "work_mode": "hybrid",
+        "salary": null,
+        "skills": [
+          "Java",
+          "Selenium",
+          "Docker",
+          "Azure DevOps",
+          "Agile",
+          "Scrum"
+        ]
+      }
+    },
+    {
+      "id": "77d1db4e9922",
+      "bank": "ING",
+      "title": "Internship - Interest Rate Risk in the Banking Book",
+      "location": "Netherlands, Amsterdam",
+      "level": "intern",
+      "published": "2026-11-19",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/internship-interest-rate-risk-in-the-banking-book/3121/47059726592",
+      "description": "Supports risk management by analyzing and quantifying interest rate risks, and optimizing risk systems and tools. Suits a master's student in a quantitative field, such as Econometrics or Mathematics, with Python programming skills and experience in data engineering.",
+      "skills": [
+        "Python",
+        "Power BI",
+        "data engineering",
+        "quantitative analysis",
+        "modelling",
+        "GenAI tools"
+      ],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": "Supports risk management by analyzing and quantifying interest rate risks, and optimizing risk systems and tools. Suits a master's student in a quantitative field, such as Econometrics or Mathematics, with Python programming skills and experience in data engineering.",
+      "facts": {
+        "seniority": "intern",
+        "posting_language": "en",
+        "dutch_required": null,
+        "visa_or_relocation_support": null,
+        "work_mode": "hybrid",
+        "salary": "€700 per week",
+        "skills": [
+          "Python",
+          "Power BI",
+          "data engineering",
+          "quantitative analysis",
+          "modelling",
+          "GenAI tools"
+        ]
+      }
+    },
     {
       "id": "d69b4872bfd7",
       "bank": "ING",
@@ -10,13 +88,35 @@
       "published": "2026-11-19",
       "deadline": "",
       "url": "https://careers.ing.com/en/job/amsterdam/performance-marketing-specialist-ing-private-banking-and-wealth-management/3121/46240514432",
-      "description": "A major Dutch multinational bank headquartered in Amsterdam, serving over 40 million customers worldwide. ING is one of the Netherlands' largest employers in financial services, recognised for its digital innovation, direct banking model, and strong presence in both retail and wholesale banking.",
-      "skills": [],
+      "description": "Develops and optimizes digital marketing campaigns to drive commercial growth. Suits a marketing professional with 1-4 years of experience in digital or performance marketing and data analysis skills.",
+      "skills": [
+        "data analysis",
+        "digital marketing",
+        "performance marketing",
+        "SQL",
+        "Python",
+        "BI-tools"
+      ],
       "source": "ING",
       "employer": "ING",
       "verifiedOfficialLink": true,
-      "gist": null,
-      "facts": {}
+      "gist": "Develops and optimizes digital marketing campaigns to drive commercial growth. Suits a marketing professional with 1-4 years of experience in digital or performance marketing and data analysis skills.",
+      "facts": {
+        "seniority": null,
+        "posting_language": "nl",
+        "dutch_required": null,
+        "visa_or_relocation_support": null,
+        "work_mode": "hybrid",
+        "salary": null,
+        "skills": [
+          "data analysis",
+          "digital marketing",
+          "performance marketing",
+          "SQL",
+          "Python",
+          "BI-tools"
+        ]
+      }
     },
     {
       "id": "e4403cca7486",
@@ -91,48 +191,13 @@
           "administration"
         ]
       }
-    },
-    {
-      "id": "c7063da62380",
-      "bank": "ING",
-      "title": "Front Office Quant – Risk Factor Modelling",
-      "location": "Netherlands, Amsterdam",
-      "level": "Not specified",
-      "published": "2026-11-17",
-      "deadline": "",
-      "url": "https://careers.ing.com/en/job/amsterdam/front-office-quant-risk-factor-modelling/3121/46990070528",
-      "description": "A major Dutch multinational bank headquartered in Amsterdam, serving over 40 million customers worldwide. ING is one of the Netherlands' largest employers in financial services, recognised for its digital innovation, direct banking model, and strong presence in both retail and wholesale banking.",
-      "skills": [
-        "quantitative modelling",
-        "derivatives pricing",
-        "risk management",
-        "programming"
-      ],
-      "source": "ING",
-      "employer": "ING",
-      "verifiedOfficialLink": true,
-      "gist": null,
-      "facts": {
-        "seniority": null,
-        "posting_language": "en",
-        "dutch_required": null,
-        "visa_or_relocation_support": null,
-        "work_mode": null,
-        "salary": null,
-        "skills": [
-          "quantitative modelling",
-          "derivatives pricing",
-          "risk management",
-          "programming"
-        ]
-      }
     }
   ],
   "sources": [
     {
       "bank": "ING",
       "status": "ok",
-      "count": 4,
+      "count": 5,
       "source": "GigSignal public jobs API"
     },
     {
@@ -143,11 +208,10 @@
     },
     {
       "bank": "Rabobank official careers page",
-      "status": "fetch_error",
+      "status": "no_structured_jobs_found",
       "count": 0,
-      "source": "https://rabobank.jobs/nl/vacatures/",
-      "detail": "HTTP Error 403: Forbidden"
+      "source": "https://rabobank.jobs/nl/vacatures/"
     }
   ],
-  "note": "Listings are collected from the public GigSignal feed (location=amsterdam is documented as a Netherlands-wide shortcut) and Rabobank's official careers page when accessible. The public feed contains jobs observed in the last two days, so it is not a complete list of every open vacancy. The published field may represent first-seen date, not the employer's original publication date. Full vacancy text is not always included; open the employer's page to confirm requirements and application status."
+  "note": "Listings are collected from the public GigSignal feed and Rabobank's official careers page when accessible. The public feed contains jobs observed in the last two days, so it is not a complete list of every open vacancy. The published field may represent first-seen date, not the employer's original publication date."
 }
