@@ -51,6 +51,10 @@
   function extractTerms(text){const lower=text.toLowerCase();const found=KEYWORDS.filter(k=>lower.includes(k));const freq={};tokenize(text).forEach(t=>freq[t]=(freq[t]||0)+1);const generic=Object.entries(freq).filter(([,n])=>n>=2).sort((a,b)=>b[1]-a[1]).slice(0,25).map(([w])=>w);return [...new Set([...found,...generic])];}
   function jobText(j){return [j.title,j.description,j.gist,(j.skills||[]).join(' '),JSON.stringify(j.facts||{})].join(' ');}
   function analyse(j){
+    if(window.bjtScoreJob){
+      const r=window.bjtScoreJob(j);
+      return {pct:r.score,matched:r.matched,missing:r.missing,partial:r.partial,notes:r.risks,strengths:r.strengths,gaps:r.gaps,termsCount:r.termsCount};
+    }
     const cv=cvText.toLowerCase(), jt=jobText(j).toLowerCase();
     const aliases=[['SQL',['sql']],['SAS',['sas']],['IFRS 9',['ifrs 9']],['ECL',['ecl','expected credit loss']],['Credit risk',['credit risk']],['Portfolio analysis/reporting',['portfolio analysis','portfolio reporting','credit portfolio']],['Regulatory/management reporting',['regulatory reporting','management reporting','risk reporting']],['NPE/forbearance',['npe','forbearance']],['Oracle',['oracle']],['DB2',['db2']],['Power Query',['power query']],['Excel',['excel']],['Data quality/reconciliation',['data quality','reconciliation']],['Python',['python']],['Power BI',['power bi']],['Data engineering',['data engineering']],['Modelling',['modelling','modeling']],['Java',['java']],['Selenium',['selenium']],['Docker',['docker']],['Azure DevOps',['azure devops']],['Agile/Scrum',['agile','scrum']],['JavaScript',['javascript']],['TypeScript',['typescript']],['React',['react']],['Next.js',['next.js','nextjs']],['HTML/CSS',['html','css']]];
     const requested=[...new Set((Array.isArray(j.skills)?j.skills:[]).map(x=>String(x).trim()).filter(Boolean))];
@@ -87,7 +91,9 @@
     const a=analyse(j), color=a.pct>=75?'high':a.pct>=50?'mid':'low';
     box.innerHTML=`<div class="cv-score-row"><div class="cv-score ${color}"><b>${a.pct}%</b><small>CV MATCH</small></div><div><b>${esc(j.title)}</b><small>${esc(j.bank)} · ${esc(j.location||'Netherlands')}</small><p>${a.matched.length} potvrđenih zahtjeva od ${a.termsCount} prepoznatih zahtjeva</p></div></div>
       <div class="cv-meter"><i style="width:${a.pct}%"></i></div>
-      <div class="cv-columns"><div><h4><span>✓</span> Poklapa se s CV-em</h4><div class="cv-chiplist">${a.matched.length?a.matched.map(x=>`<span>${esc(x)}</span>`).join(''):'<small>Nema jasnih podudaranja u tekstu oglasa.</small>'}</div></div><div><h4><span>!</span> Nije pronađeno u CV-u</h4><div class="cv-chiplist missing">${a.missing.length?a.missing.map(x=>`<span>${esc(x)}</span>`).join(''):'<small>Nema dodatnih ključnih pojmova.</small>'}</div></div></div>
+      <div class="cv-columns"><div><h4><span>✓</span> Poklapa se s CV-em</h4><div class="cv-chiplist">${a.matched.length?a.matched.map(x=>`<span>${esc(x)}</span>`).join(''):'<small>Nema jasnih podudaranja u tekstu oglasa.</small>'}</div></div><div><h4><span>!</span> Nije pronađeno u CV-u</h4><div class="cv-chiplist missing">${a.missing.length?a.missing.map(x=>`<span>${esc(x)}</span>`).join(''):'<small>Nema potvrđenih nedostajućih ključnih vještina; to ne potvrđuje automatski sve uvjete.</small>'}</div></div></div>
+      ${a.strengths?.length?`<div class="cv-analysis-evidence"><h4>Prednosti u odnosu na konkretan oglas</h4><ul>${a.strengths.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
+      ${a.gaps?.length?`<div class="cv-analysis-evidence cv-analysis-gaps"><h4>Nedostaci i neispunjeni uvjeti oglasa</h4><ul>${a.gaps.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
       <div class="cv-flags">${a.notes.map(x=>`<span class="flag-warn">${esc(x)}</span>`).join('')}${a.partial.length?`<span class="flag-warn">Djelomično: ${esc(a.partial.join(', '))} (edukacija/osnovna razina, ne profesionalno iskustvo)</span>`:''}</div>
       <a class="cv-job-link" href="${esc(j.url)}" target="_blank" rel="noopener">Otvori originalni oglas ↗</a>
       <small class="cv-score-note">Procjena je tekstualna i koristi samo podatke dostupne u feedu (često sažetak, ne puni tekst oglasa). Nije procjena poslodavca niti potvrda da ispunjavaš sve uvjete. Nedostajući pojam ne znači automatski da nemaš tu vještinu.</small>`;

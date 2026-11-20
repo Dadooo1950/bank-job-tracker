@@ -13,6 +13,7 @@ const getId = j => String(j.id || j.url || `${j.bank}-${j.title}`);
 const jobText = j => `${j.title || ''} ${j.description || ''} ${Array.isArray(j.skills) ? j.skills.join(' ') : (j.skills || '')} ${j.level || ''}`.toLowerCase();
 const CV_STORE = 'bjt_cv_text_v1';
 const CV_PROFILE_STORE = 'bjt_cv_profile_v1';
+const DEFAULT_CV_CONTEXT = 'Nearly five years of banking experience in credit risk portfolio analysis and reporting. At Zagrebačka banka, improved a recurring SQL report from about 60 minutes to 4 minutes and automated a recurring Power Query report from a full working day to about 5 minutes. At Hrvatska poštanska banka, independently prepare three whole-credit-portfolio reports (monthly, quarterly and annual) used by senior management; investigate reporting/data discrepancies and support the operational migration of portfolio dashboards to Oracle Analytics Cloud. EU citizen with unrestricted right to work in the Netherlands; English C1, German A2; no Dutch.';
 const CV_TERMS = ["sql", "sas", "ifrs 9", "ecl", "expected credit loss", "credit risk", "portfolio analysis", "portfolio analytics", "risk reporting", "regulatory reporting", "management reporting", "data quality", "reconciliation", "oracle", "db2", "power query", "provisioning", "npe", "forbearance", "data controls", "financial reporting", "risk data", "portfolio reporting", "credit portfolio", "stage", "pd", "rating", "rwa", "data analysis", "automation", "excel", "python", "power bi", "dashboard", "data requirements", "process improvement", "testing"];
 const HIGH_TERMS = ["ifrs 9", "ecl", "expected credit loss", "credit risk", "portfolio analysis", "portfolio analytics", "risk reporting", "regulatory reporting", "management reporting", "sql", "sas", "data quality", "reconciliation", "oracle", "db2", "power query", "provisioning", "npe", "forbearance", "rwa", "data controls", "credit portfolio", "financial reporting", "risk data"];
 function readCVText() {
@@ -20,7 +21,7 @@ function readCVText() {
     const uploaded = localStorage.getItem(CV_STORE) || '';
     if (uploaded.trim().length <= 40) return '';
     const profile = JSON.parse(localStorage.getItem(CV_PROFILE_STORE) || '{}');
-    return `${uploaded} ${profile.extra || ''}`.toLowerCase();
+    return `${uploaded} ${profile.extra || DEFAULT_CV_CONTEXT}`.toLowerCase();
   } catch { return (localStorage.getItem(CV_STORE) || '').toLowerCase(); }
 }
 function extractJobTerms(text) {
@@ -33,87 +34,83 @@ function extractJobTerms(text) {
   return [...new Set([...found, ...repeated])].filter(t=>t.length>2);
 }
 function scoreJob(j) {
-  const t = jobText(j), cvText = readCVText(), hasCV = cvText.trim().length > 40;
-  const fullText = `${j.title||''} ${j.description||''} ${j.gist||''} ${(j.skills||[]).join(' ')}`;
-  const lower = fullText.toLowerCase();
-  const candidateYears = /nearly five years|almost five years|5 years|five years/i.test(cvText) ? 5 : ((cvText.match(/\b(\d+)\+? years?\b/i)||[])[1] ? Number((cvText.match(/\b(\d+)\+? years?\b/i)||[])[1]) : 0);
-  const rangeExp = lower.match(/(\d+)\s*[-–]\s*(\d+)\s*(?:years?|yrs?)\s+(?:of\s+)?experience/i);
-  const minExpMatch = lower.match(/(?:at least|minimum of|min\.?|\b)(\d+)\+?\s*(?:years?|yrs?)(?:\s+of)?\s+(?:relevant\s+|professional\s+)?experience/i) || lower.match(/(\d+)\+?\s*(?:years?|yrs?)\s+(?:of\s+)?experience/i);
-  const minYears = rangeExp ? Number(rangeExp[1]) : (minExpMatch ? Number(minExpMatch[1]) : 0);
-  const senior = /\b(head|director|vice president|vp|executive director|senior manager|team lead|lead)\b/i.test(`${j.title||''} ${j.level||''}`);
-  const internship = /internship|\bintern\b|\bstage\b|student|graduate programme/i.test(`${j.title||''} ${j.level||''}`);
-  const modelling = /credit risk model|model development|quantitative model validation|model validation|derivatives pricing|quantitative modelling|quantitative modeling/i.test(lower);
-  const dutch = /native dutch|fluent dutch|dutch.{0,35}(required|mandatory|essential)|must speak dutch/i.test(lower) || j.facts?.dutch_required === true;
-  const unrelated = /performance marketing|digital marketing|front.?end|software engineer|test engineer|event management|recruitment|communications/i.test(j.title||'');
-  const skillAliases = [
-    ['SQL',['sql']],['SAS',['sas']],['IFRS 9',['ifrs 9']],['ECL / expected credit loss',['ecl','expected credit loss']],
-    ['Credit risk',['credit risk']],['Portfolio analysis / reporting',['portfolio analysis','portfolio analytics','portfolio reporting','credit portfolio']],
-    ['Regulatory / management reporting',['regulatory reporting','management reporting','risk reporting']],['NPE / forbearance',['npe','forbearance']],
-    ['PD / rating / staging',['pd','rating','stage']],['RWA / CR4',['rwa','cr4']],['Oracle',['oracle']],['DB2',['db2']],
-    ['Power Query',['power query']],['Excel',['excel']],['Data quality / reconciliation',['data quality','reconciliation']],
-    ['Python',['python']],['Power BI',['power bi']],['Data engineering',['data engineering']],['Java',['java']],['Selenium',['selenium']],
-    ['Docker',['docker']],['Azure DevOps',['azure devops']],['Agile / Scrum',['agile','scrum']],['JavaScript',['javascript']],
-    ['TypeScript',['typescript']],['React',['react']],['Next.js',['next.js','nextjs']],['HTML / CSS',['html','css']],
-    ['Machine learning',['machine learning']],['Modelling',['modelling','modeling']],['GenAI tools',['genai']]
+  const cvText=readCVText(), hasCV=cvText.trim().length>40;
+  const fullText=[j.title||'',j.description||'',j.gist||'',Array.isArray(j.skills)?j.skills.join(' '):(j.skills||''),j.level||''].join(' ');
+  const lower=fullText.toLowerCase();
+  const candidateYears=/nearly five years|almost five years/i.test(cvText)?4.8:((cvText.match(/\b(\d+(?:\.\d+)?)\+? years?\b/i)||[])[1]?Number((cvText.match(/\b(\d+(?:\.\d+)?)\+? years?\b/i)||[])[1]):0);
+  const rangeExp=lower.match(/(\d+)\s*[-–]\s*(\d+)\s*(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+|professional\s+)?experience/i);
+  const expMatches=[...lower.matchAll(/(?:at least|minimum of|min\.?|more than|over)?\s*(\d+)\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+|professional\s+)?experience/gi)];
+  const minYears=rangeExp?Number(rangeExp[1]):(expMatches.length?Math.max(...expMatches.map(m=>Number(m[1]))):0);
+  const senior=/\b(head|director|vice president|vp|senior manager|senior analyst|senior specialist|team lead|lead)\b/i.test(`${j.title||''} ${j.level||''}`);
+  const internship=/internship|\bintern\b|\bstage\b|student|graduate programme/i.test(`${j.title||''} ${j.level||''}`);
+  const modelling=/credit risk model|model development|quantitative model validation|model validation|derivatives pricing|quantitative modelling|quantitative modeling/i.test(lower);
+  const dutch=/native dutch|fluent dutch|dutch.{0,35}(required|mandatory|essential)|must speak dutch|excellent dutch/i.test(lower)||j.facts?.dutch_required===true;
+  const unrelated=/performance marketing|digital marketing|front.?end|software engineer|test engineer|event management|recruitment|communications/i.test(j.title||'');
+  const skillAliases=[
+    ['SQL',['sql']],['SAS',['sas']],['IFRS 9',['ifrs 9']],['ECL / expected credit loss',['ecl','expected credit loss']],['Credit risk',['credit risk']],
+    ['Portfolio analysis / reporting',['portfolio analysis','portfolio analytics','portfolio reporting','credit portfolio']],['Regulatory / management reporting',['regulatory reporting','management reporting','risk reporting']],
+    ['NPE / forbearance',['npe','forbearance']],['PD / rating / staging',['pd','rating','stage']],['RWA / CR4',['rwa','cr4']],['Oracle',['oracle']],['DB2',['db2']],
+    ['Power Query',['power query']],['Excel',['excel']],['Data quality / reconciliation',['data quality','reconciliation']],['Python',['python']],['Power BI',['power bi']],['Dutch',['dutch']],['English',['english']],['German',['german']],
+    ['Data engineering',['data engineering']],['Java',['java']],['Selenium',['selenium']],['Docker',['docker']],['Azure DevOps',['azure devops']],['Agile / Scrum',['agile','scrum']],
+    ['JavaScript',['javascript']],['TypeScript',['typescript']],['React',['react']],['Machine learning',['machine learning']],['Modelling',['modelling','modeling']],['Bachelor degree',['bachelor degree','bachelor’s degree','bachelor\'s degree']],['Master degree',['master degree','master’s degree','master\'s degree']]
   ];
-  const requested = [...new Set((Array.isArray(j.skills)?j.skills:[]).map(x=>String(x).trim()).filter(x=>x.length>1))];
-  // Include explicit, recognisable requirements from the description, not repeated generic words.
-  for (const [label, aliases] of skillAliases) if (aliases.some(a=>lower.includes(a)) && !requested.some(x=>x.toLowerCase()===label.toLowerCase())) requested.push(label);
-  const matched=[], missing=[], partial=[];
-  if (hasCV) for (const req of requested) {
-    const key=req.toLowerCase();
-    const group=skillAliases.find(([label,aliases])=>label.toLowerCase()===key || aliases.includes(key) || aliases.some(a=>key===a));
-    const aliases=group?group[1]:[key];
-    const found=aliases.some(a=>cvText.includes(a));
-    if (!found) missing.push(req);
-    else if ((key.includes('python') && /basic|foundational|training|course/i.test(cvText)) || (key.includes('power bi') && /course|training|basic/i.test(cvText))) partial.push(req);
+  const hasTerm=(text,term)=>new RegExp('(^|[^a-z0-9])'+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z0-9]|$)','i').test(text);
+  const requested=[...new Set((Array.isArray(j.skills)?j.skills:[]).map(x=>String(x).trim()).filter(x=>x.length>1))];
+  for(const [label,aliases] of skillAliases) if(aliases.some(a=>hasTerm(lower,a))&&!requested.some(x=>x.toLowerCase()===label.toLowerCase())) requested.push(label);
+  const matched=[],missing=[],partial=[];
+  if(hasCV) for(const req of requested){
+    const group=skillAliases.find(([label,aliases])=>label.toLowerCase()===req.toLowerCase()||aliases.includes(req.toLowerCase()));
+    const aliases=group?group[1]:[req.toLowerCase()];
+    const negativeLanguage=(/^(dutch)$/i.test(req)&&/no dutch|without dutch|do not speak dutch|does not speak dutch/i.test(cvText));
+    const found=!negativeLanguage&&aliases.some(a=>hasTerm(cvText,a));
+    if(!found) missing.push(req);
+    else if((/python/i.test(req)&&/basic|foundational|training|course/i.test(cvText))||(/power bi/i.test(req)&&/course|training|basic/i.test(cvText))||(/modelling/i.test(req)&&!/model development|model validation|quantitative model/i.test(cvText))) partial.push(req);
     else matched.push(req);
   }
-  let score=0;
-  if (hasCV) {
-    const reqCount=Math.max(1,requested.length);
-    const skillScore=(matched.length + partial.length*0.35)/reqCount;
-    const domainFit=/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl|provisioning|banking/i.test(lower) ? (/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl|provisioning/i.test(cvText)?1:0.35) : (/banking|financial/i.test(lower)&&/banking/i.test(cvText)?0.8:0.25);
-    let experienceFit=1;
-    if (minYears>0) experienceFit=Math.min(1,candidateYears/minYears);
-    if (senior && candidateYears<7) experienceFit=Math.min(experienceFit,0.65);
-    score=Math.round((skillScore*0.65 + experienceFit*0.20 + domainFit*0.15)*100);
-    if (minYears>candidateYears && minYears>0) score=Math.min(score, Math.max(35, 75-(minYears-candidateYears)*8));
-    if (dutch) score=Math.min(score,45);
-    if (internship) score=Math.min(score,25);
-    if (unrelated) score=Math.min(score,20);
-    if (modelling) score=Math.min(score,55);
-    score=Math.min(95,score);
-  } else {
-    score=0;
-  }
+  const skillScore=requested.length?(matched.length+partial.length*.35)/requested.length:0.35;
+  const roleRelevant=/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl|provisioning|financial risk/i.test(lower);
+  const domainFit=roleRelevant?(/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl|provisioning/i.test(cvText)?1:0.35):(/banking|financial/i.test(lower)&&/banking/i.test(cvText)?0.75:0.3);
+  const experienceFit=minYears?Math.min(1,candidateYears/minYears):0.70;
+  const seniorityFit=senior?(candidateYears>=7?1:0.55):0.85;
+  let score=hasCV?Math.round((skillScore*.55+experienceFit*.25+domainFit*.15+seniorityFit*.05)*100):0;
+  if(hasCV&&!requested.length)score=Math.min(score,60);
+  if(minYears>candidateYears&&minYears){const gap=minYears-candidateYears;score=Math.min(score,Math.max(42,82-gap*9));}
+  if(senior&&candidateYears<7)score=Math.min(score,78);
+  if(dutch)score=Math.min(score,42);
+  if(internship)score=Math.min(score,25);
+  if(unrelated)score=Math.min(score,20);
+  if(modelling)score=Math.min(score,55);
+  const textLength=String(j.description||j.gist||'').trim().length;
+  const lowDetail=textLength<350;
+  if(lowDetail)score=Math.min(score,72);
+  score=Math.min(88,Math.max(0,score));
   const strengths=[];
-  if (hasCV) {
-    if (matched.length) strengths.push(`Izravno poklapanje s oglasom: ${matched.join(', ')}.`);
-    if (/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl/i.test(lower) && /credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl/i.test(cvText)) strengths.push('Dosadašnje bankarsko iskustvo u kreditnom riziku, portfeljnoj analizi i izvještavanju relevantno je za područje ove uloge.');
-    if (/sql/i.test(lower) && /sql/i.test(cvText)) strengths.push('SQL iskustvo, uključujući optimizaciju izvještaja i rad s bankarskim podacima.');
-    if (/report/i.test(lower) && /three whole-credit-portfolio reports|three whole credit portfolio reports/i.test(cvText)) strengths.push('Samostalna izrada mjesečnih, kvartalnih i godišnjih izvještaja kreditnog portfelja za menadžment.');
-    if (/nearly five years|almost five years/i.test(cvText)) strengths.push('Gotovo pet godina profesionalnog bankarskog iskustva.');
-  }
+  if(hasCV&&matched.length)strengths.push(`Zahtjevi iz oglasa koje CV izravno potvrđuje: ${matched.join(', ')}.`);
+  if(hasCV&&/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl/i.test(lower)&&/credit risk|portfolio|risk reporting|regulatory reporting|ifrs 9|ecl/i.test(cvText))strengths.push('Relevantno iskustvo u bankarskom kreditnom riziku, analizi kreditnog portfelja i izvještavanju odgovara području ove pozicije.');
+  if(hasCV&&/sql/i.test(lower)&&hasTerm(cvText,'sql'))strengths.push('SQL je potvrđen u CV-u; konkretan dokaz uključuje optimizaciju izvještaja s približno 60 na 4 minute.');
+  if(hasCV&&/report|portfolio/i.test(lower)&&/three whole-credit-portfolio reports|three whole credit portfolio reports/i.test(cvText))strengths.push('Samostalna izrada mjesečnih, kvartalnih i godišnjih izvještaja kreditnog portfelja za menadžment.');
+  if(hasCV&&/nearly five years|almost five years/i.test(cvText))strengths.push('Gotovo pet godina iskustva u bankarstvu; to je relevantna osnova, ali nije automatski jednako ispunjenom uvjetu od 5+ ili 7+ godina.');
   const gaps=[];
-  if (hasCV && missing.length) gaps.push(`Traženo u oglasu, ali nije pronađeno u CV-u: ${missing.join(', ')}.`);
-  if (hasCV && partial.length) gaps.push(`${partial.join(', ')}: u CV-u je navedena osnovna razina/edukacija, ne profesionalno iskustvo.`);
-  if (minYears>candidateYears && minYears>0) gaps.push(`Oglas traži najmanje ${minYears} godina iskustva; u CV-u je navedeno približno ${candidateYears} godina.`);
-  if (senior && candidateYears<7) gaps.push('Pozicija djeluje seniorski/voditeljski; CV ne potvrđuje opseg senioriteta ili vođenja tima koji se može očekivati.');
-  if (dutch) gaps.push('Nizozemski je naveden kao obvezan uvjet, a u CV-u nije navedena tražena razina.');
-  if (modelling) gaps.push('Oglas uključuje razvoj/validaciju kvantitativnih modela, što nije tvoje glavno profesionalno iskustvo.');
-  if (internship) gaps.push('Ovo je studentska/praktična pozicija, ne standardna profesionalna uloga za tvoju razinu iskustva.');
-  if (unrelated) gaps.push('Glavni fokus oglasa nije kreditni rizik, portfeljna analiza ni bankarsko izvještavanje.');
+  if(hasCV&&missing.length)for(const req of missing)gaps.push(`Traženo u oglasu: ${req}. CV ne sadrži dokaz da je ovaj uvjet/vještina ispunjena.`);
+  if(hasCV&&partial.length)for(const req of partial)gaps.push(`${req}: u CV-u je navedena edukacija/osnovna razina ili ograničena izloženost, ne samostalno profesionalno iskustvo.`);
+  if(minYears>candidateYears&&minYears)gaps.push(`Staž: oglas traži najmanje ${minYears} godina iskustva, a CV potvrđuje približno ${candidateYears.toFixed(1).replace('.',',')} godine. Uvjet nije u potpunosti zadovoljen.`);
+  if(senior&&candidateYears<7)gaps.push('Senioritet: naziv/razina oglasa upućuje na seniorsku poziciju; CV potvrđuje gotovo pet godina iskustva, ali ne potvrđuje 7+ godina ili vođenje tima.');
+  if(dutch)gaps.push('Jezik: oglas navodi nizozemski kao obvezan uvjet, a CV ne potvrđuje traženu razinu.');
+  if(modelling)gaps.push('Modeliranje: oglas traži razvoj ili validaciju kvantitativnih/credit-risk modela; to nije tvoje glavno profesionalno iskustvo.');
+  if(internship)gaps.push('Razina uloge: oglas je studentska/praktična pozicija, a ne standardna profesionalna uloga.');
+  if(unrelated)gaps.push('Područje: glavni fokus oglasa nije kreditni rizik, portfeljna analiza ni bankarsko izvještavanje.');
   const risks=[];
-  if (!requested.length) risks.push('Feed sadrži samo kratak sažetak; puni zahtjevi oglasa nisu dostupni za pouzdanu procjenu.');
-  if (j.facts?.posting_language==='nl' && !dutch) risks.push('Oglas je objavljen na nizozemskom; to samo po sebi ne potvrđuje da je nizozemski obvezan. Provjeri puni oglas.');
-  if (!minYears) risks.push('Oglasni sažetak ne navodi minimalan broj godina iskustva; provjeri puni oglas prije prijave.');
-  return {score:hasCV?Math.max(0,score):0,matched,missing:[...gaps],matchMode:hasCV?'cv':'profile',strengths,risks,hasCV,termsCount:requested.length,partial};
+  if(lowDetail)risks.push('Dostupan je samo kratak sažetak oglasa. Analiza ne može pouzdano potvrditi sve obvezne uvjete; zato je rezultat ograničen. Otvori puni oglas prije prijave.');
+  if(!minYears)risks.push('U dostupnom tekstu nije pronađen jasan minimalni broj godina iskustva; staž zato nije bodovan kao potpuno zadovoljen uvjet.');
+  if(j.facts?.posting_language==='nl'&&!dutch)risks.push('Oglas je na nizozemskom, ali to samo po sebi ne dokazuje da je nizozemski obvezan.');
+  return {score,matched,missing,gaps,strengths,risks,partial,hasCV,termsCount:requested.length,candidateYears,minYears,lowDetail};
 }
+window.bjtScoreJob=scoreJob;
+
 function bankLogo(bank) {
   const b=String(bank||'').toLowerCase();
   const known=[
-    ['ing','https://commons.wikimedia.org/wiki/Special:FilePath/ING_lion.png','ING'],
+    ['ing','https://commons.wikimedia.org/wiki/Special:FilePath/ING%20lion.png','ING orange lion'],
     ['rabobank','https://commons.wikimedia.org/wiki/Special:FilePath/Rabobank%20text%20logo.svg','Rabobank'],
     ['abn','https://www.google.com/s2/favicons?domain=abnamro.com&sz=128','ABN AMRO'],
     ['nibc','https://www.google.com/s2/favicons?domain=nibc.com&sz=128','NIBC'],
@@ -123,7 +120,7 @@ function bankLogo(bank) {
     ['abnamro','https://www.google.com/s2/favicons?domain=abnamro.com&sz=128','ABN AMRO']
   ];
   const hit=known.find(x=>b.includes(x[0]));
-  if(hit) return `<img class="bank-logo ${hit[0]==='ing'?'ing-logo':hit[0]==='rabobank'?'rabo-logo':'other-bank-logo'}" src="${hit[1]}" alt="${hit[2]} logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>${hit[2]}</span>`;
+  if(hit) return hit[0]==='ing' ? `<img class="bank-logo ing-logo" src="${hit[1]}" alt="ING orange lion emblem" loading="eager" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback ing-wordmark" hidden>ING</span>` : `<img class="bank-logo ${hit[0]==='rabobank'?'rabo-logo':'other-bank-logo'}" src="${hit[1]}" alt="${hit[2]} logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>${hit[2]}</span>`;
   return `<span class="bank-logo-fallback">${esc(bank||'BANK')}</span>`;
 }
 function openJobDetail(id) {
@@ -131,9 +128,9 @@ function openJobDetail(id) {
   const a=scoreJob(j), cvReady=a.hasCV;
   const strengths=a.strengths.length?a.strengths.map(x=>`<li>${esc(x)}</li>`).join(''):'<li>U dostupnom tekstu oglasa nema dovoljno konkretnih zahtjeva za potvrdu specifičnih prednosti.</li>';
   const matched=a.matched.length?a.matched.map(x=>`<span class="analysis-chip">${esc(x)}</span>`).join(''):'<span class="muted">Nema potvrđenih ključnih podudaranja.</span>';
-  const gaps=a.missing.length?a.missing.map(x=>`<li>${esc(x)}</li>`).join(''):'<li>Nema prepoznatih konkretnih nedostataka u dostupnom sažetku; puni oglas ipak treba provjeriti.</li>';
+  const gapItems=(a.gaps||[]).length?a.gaps:a.missing; const gaps=gapItems.length?gapItems.map(x=>`<li>${esc(x)}</li>`).join(''):'<li>U dostupnom tekstu nije prepoznat dodatni nedostatak. To ne znači da su svi uvjeti oglasa zadovoljeni; provjeri puni oglas.</li>';
   const risks=a.risks.length?a.risks.map(x=>`<li>${esc(x)}</li>`).join(''):'<li>Nije prepoznata posebna prepreka iz dostupnih podataka.</li>';
-  $('modalBody').innerHTML=`<div class="detail-bankline">${bankLogo(j.bank)}<span>${esc(j.bank||'')}</span></div><h2 id="modalTitle">${esc(j.title||'Pozicija')}</h2><p class="detail-meta">${esc(j.location||'Netherlands')} · ${esc(j.level||'Razina nije navedena')} · ${esc(j.published||'Datum objave nije poznat')}</p><div class="detail-match"><b>${a.score}%</b><span>${cvReady?'PODUDARANJE S TVOJIM CV-om':'PODUDARANJE S PROFILOM'}</span></div><p class="detail-caveat">${cvReady?'Procjena se temelji na tekstu učitanog CV-a i informacijama o oglasu dostupnima u feedu.':'Za precizniju procjenu učitaj CV. Trenutačni rezultat temelji se na profilu ključnih riječi.'} Postotak nije vjerojatnost zaposlenja. Oglasni feed može sadržavati samo sažetak, ne puni opis.</p><section class="detail-analysis"><h3>Prednosti u odnosu na ovaj oglas</h3><ul>${strengths}</ul><h4>Traženi uvjeti koje CV potvrđuje</h4><div class="analysis-chips">${matched}</div></section><section class="detail-analysis"><h3>Nedostaci u odnosu na ovaj oglas</h3><ul>${gaps}</ul></section><section class="detail-analysis"><h3>Važna upozorenja</h3><ul>${risks}</ul></section><a class="btn btn-primary detail-open" href="${esc(j.url||'#')}" target="_blank" rel="noopener">Otvori službeni oglas ↗</a>`;
+  $('modalBody').innerHTML=`<div class="detail-bankline">${bankLogo(j.bank)}<span>${esc(j.bank||'')}</span></div><h2 id="modalTitle">${esc(j.title||'Pozicija')}</h2><p class="detail-meta">${esc(j.location||'Netherlands')} · ${esc(j.level||'Razina nije navedena')} · ${esc(j.published||'Datum objave nije poznat')}</p><div class="detail-match"><b>${a.score}%</b><span>${cvReady?'PODUDARANJE S TVOJIM CV-om':'PODUDARANJE S PROFILOM'}</span></div><p class="detail-caveat">${cvReady?'Procjena se temelji na tekstu učitanog CV-a i informacijama o oglasu dostupnima u feedu.':'Za precizniju procjenu učitaj CV. Trenutačni rezultat temelji se na profilu ključnih riječi.'} Postotak nije vjerojatnost zaposlenja. ${a.minYears?`Staž: oglas traži ${a.minYears}+ godina, a CV potvrđuje približno ${a.candidateYears.toFixed(1).replace('.',',')} godine.`:''} Oglasni feed može sadržavati samo sažetak, ne puni opis.</p><section class="detail-analysis"><h3>Prednosti u odnosu na ovaj oglas</h3><ul>${strengths}</ul><h4>Traženi uvjeti koje CV potvrđuje</h4><div class="analysis-chips">${matched}</div></section><section class="detail-analysis"><h3>Nedostaci u odnosu na ovaj oglas</h3><ul>${gaps}</ul></section><section class="detail-analysis"><h3>Važna upozorenja</h3><ul>${risks}</ul></section><a class="btn btn-primary detail-open" href="${esc(j.url||'#')}" target="_blank" rel="noopener">Otvori službeni oglas ↗</a>`;
   $('detailModal').hidden=false;
 }
 
