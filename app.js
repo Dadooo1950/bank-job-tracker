@@ -35,31 +35,78 @@ function extractJobTerms(text) {
 function scoreJob(j) {
   const t = jobText(j);
   const cvText = readCVText();
-  const negative = /credit risk model|model development|quantitative model validation|derivatives pricing|machine learning engineer/i.test(t);
-  const dutch = /native dutch|fluent dutch|dutch.{0,25}(required|mandatory)/i.test(t) || j.facts?.dutch_required === true;
-  if (cvText.trim().length > 40) {
-    const terms = extractJobTerms(t);
-    let total = 0, got = 0, hits = [];
-    for (const term of terms) {
-      const weight = HIGH_TERMS.includes(term) ? 3 : 1.3;
+  const hasCV = cvText.trim().length > 40;
+  const negative = /credit risk model|model development|quantitative model validation|derivatives pricing|machine learning engineer|model validation/i.test(t);
+  const dutch = /native dutch|fluent dutch|dutch.{0,25}(required|mandatory)|must speak dutch/i.test(t) || j.facts?.dutch_required === true;
+  const internship = /internship|intern\b|stage\b|student|graduate programme/i.test(`${j.title||''} ${j.level||''}`);
+  const irrelevant = /performance marketing|digital marketing|front.?end|software engineer|test engineer|event management|recruitment|communications/i.test(`${j.title||''} ${t}`);
+  const terms = CV_TERMS.filter(term => t.includes(term));
+  const jobSkills = Array.isArray(j.skills) ? j.skills.map(x => String(x).toLowerCase()) : [];
+  const allTerms = [...new Set([...terms, ...jobSkills.filter(x => x.length > 2)])];
+  const matched = hasCV ? allTerms.filter(term => cvText.includes(term)) : [];
+  const missing = hasCV ? allTerms.filter(term => !cvText.includes(term)) : [];
+  let score = 0;
+  if (hasCV) {
+    let total = 0, got = 0;
+    for (const term of allTerms) {
+      const weight = HIGH_TERMS.includes(term) ? 3 : (/sql|sas|ifrs|ecl|risk|portfolio|report|data|analytics|oracle|db2|power query/i.test(term) ? 2 : 1);
       total += weight;
-      if (cvText.includes(term)) { got += weight; hits.push(term); }
+      if (cvText.includes(term)) got += weight;
     }
-    let score = total ? Math.round(got / total * 100) : 0;
-    if (negative) score = Math.max(0, score - 18);
-    if (dutch) score = Math.max(0, score - 12);
-    hits.sort((a,b)=>(HIGH_TERMS.includes(b)?1:0)-(HIGH_TERMS.includes(a)?1:0));
-    return {score: Math.max(0, Math.min(99, score)), matched: hits.slice(0,7), matchMode:'cv'};
+    score = total ? Math.round(got / total * 100) : 0;
+    // Give a modest boost only when the role itself is in the user's established professional domain.
+    if (/credit risk|portfolio|regulatory reporting|risk reporting|ifrs 9|ecl|provisioning/i.test(t) && /credit risk|portfolio|risk reporting|regulatory reporting/i.test(cvText)) score += 8;
+    if (negative) score -= 25;
+    if (dutch) score -= 22;
+    if (internship) score -= 30;
+    if (irrelevant) score -= 20;
+  } else {
+    let got = 0, total = 0;
+    for (const term of keywords) { const w = HIGH_TERMS.includes(term) ? 5 : 2; total += w; if (t.includes(term)) got += w; }
+    score = total ? Math.round(got / total * 100) : 0;
+    if (negative) score -= 25; if (dutch) score -= 22; if (internship) score -= 30; if (irrelevant) score -= 20;
   }
-  let hits = [], score = 0;
-  const activeKeywords = keywords.length ? keywords : DEFAULT_KEYWORDS.split(',').map(x=>x.trim());
-  for (const term of activeKeywords) if (term && t.includes(term)) { score += HIGH_TERMS.includes(term) ? 5 : 2; hits.push(term); }
-  const max = activeKeywords.reduce((n,term)=>n+(HIGH_TERMS.includes(term)?5:2),0) || 1;
-  let pct = Math.round(score / max * 100);
-  if (negative) pct -= 15;
-  if (dutch) pct -= 10;
-  return {score: Math.max(0, Math.min(99, pct)), matched: hits.slice(0,7), matchMode:'profile'};
+  const strengthGroups = [
+    {label:'Credit risk i portfeljna analiza', terms:['credit risk','portfolio analysis','portfolio analytics','credit portfolio','npe','forbearance']},
+    {label:'IFRS 9 / ECL i rezervacije', terms:['ifrs 9','ecl','expected credit loss','provisioning','stage','pd','rating']},
+    {label:'Regulatorno i upravljačko izvještavanje', terms:['regulatory reporting','management reporting','risk reporting','financial reporting','rwa']},
+    {label:'SQL, SAS i baze podataka', terms:['sql','sas','oracle','db2']},
+    {label:'Kvaliteta podataka i kontrole', terms:['data quality','reconciliation','data controls']},
+    {label:'Automatizacija i analitički alati', terms:['power query','excel','automation','data analysis']}
+  ];
+  const strengths = hasCV ? strengthGroups.filter(g => g.terms.some(term => matched.includes(term) || cvText.includes(term)) && g.terms.some(term => allTerms.includes(term))).map(g=>g.label) : [];
+  if (hasCV && /nearly five years|almost five years/i.test(cvText)) strengths.unshift('Gotovo pet godina profesionalnog bankarskog iskustva.');
+  if (hasCV && /60 minutes to 4 minutes|60 min.{0,20}4 min/i.test(cvText)) strengths.push('Dokazivo ubrzanje SQL izvještaja s približno 60 na 4 minute.');
+  if (hasCV && /full working day to about 5 minutes|working day.{0,30}5 minutes/i.test(cvText)) strengths.push('Automatizacija Power Query izvještaja s cijelog radnog dana na približno 5 minuta.');
+  if (hasCV && /three whole-credit-portfolio reports|three whole credit portfolio reports/i.test(cvText)) strengths.push('Samostalna izrada tri izvještaja cjelokupnog kreditnog portfelja za menadžment.');
+  if (hasCV && /unrestricted right to work in the netherlands|eu citizen/i.test(cvText)) strengths.push('EU državljanstvo i pravo rada u Nizozemskoj bez sponzorstva.');
+  const gaps = hasCV ? missing.filter(x => x.length > 3).slice(0,8) : [];
+  if (hasCV && /python/i.test(t) && /foundational|basic|training/i.test(cvText)) gaps.unshift('Python — osnovna razina / edukacija, bez profesionalne primjene.');
+  if (hasCV && /power bi/i.test(t) && /course|training/i.test(cvText)) gaps.unshift('Power BI — završeni tečajevi, bez profesionalne izrade dashboarda.');
+  const risks = [];
+  if (negative) risks.push('Uloga uključuje kreditno/modeliranje ili kvantitativnu validaciju modela — nije tvoja glavna specijalizacija.');
+  if (dutch) risks.push('Oglas traži nizozemski jezik; tvoja trenutačna razina nizozemskog nije navedena kao kvalifikacija.');
+  if (internship) risks.push('Oglas je praksa / studentska pozicija, a ne standardna profesionalna pozicija.');
+  if (irrelevant) risks.push('Opis posla djeluje izvan tvog glavnog područja kreditnog rizika i portfeljnog izvještavanja.');
+  return {score:Math.max(0,Math.min(99,score)),matched:matched.slice(0,9),missing:gaps,matchMode:hasCV?'cv':'profile',strengths,risks,hasCV,termsCount:allTerms.length};
 }
+function bankLogo(bank) {
+  const b=String(bank||'').toLowerCase();
+  if (b.includes('ing')) return `<img class="bank-logo ing-logo" src="https://commons.wikimedia.org/wiki/Special:FilePath/ING_Group_(wordmark).svg" alt="ING logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>ING</span>`;
+  if (b.includes('rabobank')) return `<img class="bank-logo rabo-logo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Rabobank%20text%20logo.svg" alt="Rabobank logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>Rabobank</span>`;
+  return `<span class="bank-logo-fallback">${esc(bank||'BANK')}</span>`;
+}
+function openJobDetail(id) {
+  const j=jobs.find(x=>getId(x)===String(id)); if(!j)return;
+  const a=scoreJob(j), cvReady=a.hasCV;
+  const strengths=a.strengths.length?a.strengths.map(x=>`<li>${esc(x)}</li>`).join(''):'<li>U dostupnom tekstu oglasa nema dovoljno konkretnih zahtjeva za potvrdu specifičnih prednosti.</li>';
+  const matched=a.matched.length?a.matched.map(x=>`<span class="analysis-chip">${esc(x)}</span>`).join(''):'<span class="muted">Nema potvrđenih ključnih podudaranja.</span>';
+  const gaps=a.missing.length?a.missing.map(x=>`<li>${esc(x)} — nije pronađeno u tekstu CV-a</li>`).join(''):'<li>Nema jasno utvrđenih nedostajućih ključnih pojmova u dostupnom tekstu oglasa.</li>';
+  const risks=a.risks.length?a.risks.map(x=>`<li>${esc(x)}</li>`).join(''):'<li>Nije prepoznata posebna prepreka iz dostupnih podataka.</li>';
+  $('modalBody').innerHTML=`<div class="detail-bankline">${bankLogo(j.bank)}<span>${esc(j.bank||'')}</span></div><h2 id="modalTitle">${esc(j.title||'Pozicija')}</h2><p class="detail-meta">${esc(j.location||'Netherlands')} · ${esc(j.level||'Razina nije navedena')} · ${esc(j.published||'Datum objave nije poznat')}</p><div class="detail-match"><b>${a.score}%</b><span>${cvReady?'PODUDARANJE S TVOJIM CV-om':'PODUDARANJE S PROFILOM'}</span></div><p class="detail-caveat">${cvReady?'Procjena se temelji na tekstu učitanog CV-a i informacijama o oglasu dostupnima u feedu.':'Za precizniju procjenu učitaj CV. Trenutačni rezultat temelji se na profilu ključnih riječi.'} Postotak nije vjerojatnost zaposlenja. Oglasni feed može sadržavati samo sažetak, ne puni opis.</p><section class="detail-analysis"><h3>Najveće prednosti</h3><ul>${strengths}</ul><h4>Vještine i pojmovi pronađeni u CV-u</h4><div class="analysis-chips">${matched}</div></section><section class="detail-analysis"><h3>Nedostaci / što provjeriti</h3><ul>${gaps}</ul></section><section class="detail-analysis"><h3>Važna upozorenja</h3><ul>${risks}</ul></section><a class="btn btn-primary detail-open" href="${esc(j.url||'#')}" target="_blank" rel="noopener">Otvori službeni oglas ↗</a>`;
+  $('detailModal').hidden=false;
+}
+
 function state(j) { const d=dateValue(j.deadline); if (d && d < new Date()) return 'expired'; if (d && (d-new Date())/86400000 <= 7) return 'soon'; return 'active'; }
 function renderSources() {
   const el=$('sourceStatus'); if(!el) return;
@@ -89,13 +136,13 @@ function render() {
  $('resultLabel').textContent=`${list.length} rezultata`;
  $('jobs').innerHTML=list.length?list.map(j=>{
   const st=state(j), d=dateValue(j.deadline), days=d?Math.ceil((d-new Date())/86400000):null;
-  return `<article class="job"><div class="job-top"><div class="job-heading"><div class="bank">${esc((j.bank||'BANK').toUpperCase())} ${!seen.has(j._id)?'<span class="new-pill">● NOVO</span>':''}</div><h3>${esc(j.title||'Pozicija bez naziva')}</h3><div class="meta"><span>⌖ ${esc(j.location||'Netherlands')}</span><span>▣ ${esc(j.level||'Professional')}</span><span>◷ ${esc(j.published||'Datum nepoznat')}</span></div></div><div class="match">${j.score}%<small>${j.matchMode==='cv'?'CV MATCH':'PROFILE MATCH'}</small></div></div><div class="tags">${j.matched.map(t=>`<span class="tag">${esc(t)}</span>`).join('')||'<span class="tag">Provjeri opis oglasa</span>'}</div><div class="job-foot"><div class="deadline ${st}">${st==='expired'?'Istekao rok':st==='soon'?`Rok za ${days} dana`:j.deadline?`Rok: ${esc(j.deadline)}`:'Rok nije objavljen'}</div><div class="job-actions"><button data-action="seen" data-id="${esc(j._id)}">${seen.has(j._id)?'Pregledano':'Označi viđeno'}</button><button data-action="save" data-id="${esc(j._id)}" aria-label="Spremi oglas">${saved.has(j._id)?'★ Spremljeno':'☆ Spremi'}</button><a href="${esc(j.url||'#')}" target="_blank" rel="noopener">Otvori oglas ↗</a></div></div></article>`;
+  return `<article class="job"><div class="job-top"><div class="job-heading"><div class="bank">${bankLogo(j.bank)}<span>${esc((j.bank||'BANK').toUpperCase())}</span> ${!seen.has(j._id)?'<span class="new-pill">● NOVO</span>':''}</div><h3>${esc(j.title||'Pozicija bez naziva')}</h3><div class="meta"><span>⌖ ${esc(j.location||'Netherlands')}</span><span>▣ ${esc(j.level||'Professional')}</span><span>◷ ${esc(j.published||'Datum nepoznat')}</span></div></div><div class="match">${j.score}%<small>${j.matchMode==='cv'?'CV MATCH':'PROFILE MATCH'}</small></div></div><div class="tags">${j.matched.map(t=>`<span class="tag">${esc(t)}</span>`).join('')||'<span class="tag">Provjeri opis oglasa</span>'}</div><div class="job-foot"><div class="deadline ${st}">${st==='expired'?'Istekao rok':st==='soon'?`Rok za ${days} dana`:j.deadline?`Rok: ${esc(j.deadline)}`:'Rok nije objavljen'}</div><div class="job-actions"><button data-action="detail" data-id="${esc(j._id)}">Analiza</button><button data-action="seen" data-id="${esc(j._id)}">${seen.has(j._id)?'Pregledano':'Označi viđeno'}</button><button data-action="save" data-id="${esc(j._id)}" aria-label="Spremi oglas">${saved.has(j._id)?'★ Spremljeno':'☆ Spremi'}</button><a href="${esc(j.url||'#')}" target="_blank" rel="noopener">Otvori oglas ↗</a></div></div></article>`;
  }).join(''):'<div class="empty"><strong>Nema oglasa za odabrane filtre.</strong><p>Promijeni banku, smanji minimalni match ili ukloni tekst pretrage. Prazan feed ne znači da banke nemaju otvorenih pozicija.</p></div>';
 }
 function toast(msg){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2600);}
 async function loadFeed(){ $('lastSync').textContent='Učitavanje…'; $('refreshBtn').disabled=true; try{const r=await fetch(`./jobs.json?ts=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw Error(`HTTP ${r.status}`);const data=await r.json();jobs=Array.isArray(data.jobs)?data.jobs:[];sourceStatuses=Array.isArray(data.sources)?data.sources:[];$('lastSync').textContent=data.updatedAt?`Ažurirano ${new Date(data.updatedAt).toLocaleString('hr-HR',{dateStyle:'short',timeStyle:'short'})}`:'Feed učitan';renderSources();render();}catch(e){$('lastSync').textContent='Feed nije dostupan';$('sourceStatus').textContent='Ne mogu učitati jobs.json. Provjeri GitHub Pages i postoji li jobs.json u glavnoj mapi.';$('jobs').innerHTML='<div class="empty"><strong>Feed trenutačno nije dostupan.</strong><p>Provjeri je li GitHub Pages objavio datoteku jobs.json. To je odvojeno od prikaza aplikacije.</p></div>';console.error(e);}finally{$('refreshBtn').disabled=false;}}
 function exportCSV(){const rows=jobs.map(j=>({...j,...scoreJob(j)}));const headers=['bank','title','location','level','published','deadline','score','url'];const csv=[headers.join(','),...rows.map(j=>headers.map(k=>`"${String(k==='score'?j.score:j[k]??'').replace(/"/g,'""')}"`).join(','))].join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='bank-job-tracker.csv';a.click();URL.revokeObjectURL(url);toast('CSV je preuzet.');}
-function bind(){window.addEventListener('bjt-cv-updated',render);['viewFilter','bankFilter','matchFilter','sortBy'].forEach(id=>$(id)?.addEventListener('change',render));$('searchInput')?.addEventListener('input',render);$('refreshBtn')?.addEventListener('click',loadFeed);$('exportBtn')?.addEventListener('click',exportCSV);$('jobs')?.addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const id=b.dataset.id;if(b.dataset.action==='seen')seen.add(id);if(b.dataset.action==='save')saved.has(id)?saved.delete(id):saved.add(id);localStorage.setItem('bjt_seen',JSON.stringify([...seen]));localStorage.setItem('bjt_saved',JSON.stringify([...saved]));render();});$('profileKeywords').value=keywords.join(', ');$('saveProfileBtn')?.addEventListener('click',()=>{keywords=$('profileKeywords').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);localStorage.setItem(PROFILE_KEY,keywords.join(', '));render();toast('Profil je spremljen.');});$('resetProfileBtn')?.addEventListener('click',()=>{$('profileKeywords').value=DEFAULT_KEYWORDS;keywords=DEFAULT_KEYWORDS.split(',').map(x=>x.trim());localStorage.setItem(PROFILE_KEY,DEFAULT_KEYWORDS);render();toast('Vraćen je zadani profil.');});document.querySelectorAll('[data-close="true"]').forEach(x=>x.addEventListener('click',()=>{$('detailModal').hidden=true;}));}
+function bind(){window.addEventListener('bjt-cv-updated',render);['viewFilter','bankFilter','matchFilter','sortBy'].forEach(id=>$(id)?.addEventListener('change',render));$('searchInput')?.addEventListener('input',render);$('refreshBtn')?.addEventListener('click',loadFeed);$('exportBtn')?.addEventListener('click',exportCSV);$('jobs')?.addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const id=b.dataset.id;if(b.dataset.action==='detail'){openJobDetail(id);return;}if(b.dataset.action==='seen')seen.add(id);if(b.dataset.action==='save')saved.has(id)?saved.delete(id):saved.add(id);localStorage.setItem('bjt_seen',JSON.stringify([...seen]));localStorage.setItem('bjt_saved',JSON.stringify([...saved]));render();});$('profileKeywords').value=keywords.join(', ');$('saveProfileBtn')?.addEventListener('click',()=>{keywords=$('profileKeywords').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);localStorage.setItem(PROFILE_KEY,keywords.join(', '));render();toast('Profil je spremljen.');});$('resetProfileBtn')?.addEventListener('click',()=>{$('profileKeywords').value=DEFAULT_KEYWORDS;keywords=DEFAULT_KEYWORDS.split(',').map(x=>x.trim());localStorage.setItem(PROFILE_KEY,DEFAULT_KEYWORDS);render();toast('Vraćen je zadani profil.');});document.querySelectorAll('[data-close="true"]').forEach(x=>x.addEventListener('click',()=>{$('detailModal').hidden=true;}));}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();loadFeed();});else{bind();loadFeed();}
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('Service worker:',err)));
 let deferredPrompt;$('installBtn').hidden=true;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').hidden=false;});$('installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').hidden=true;});
