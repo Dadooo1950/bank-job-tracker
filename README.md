@@ -1,29 +1,32 @@
-# Bank Job Tracker — final Vice City edition
+# Bank Job Tracker — Vice City Edition
 
-This is the complete static PWA project. It keeps the working job board and adds the local CV Match & Application Studio. No OpenAI key, paid API, or subscription is required.
+A free static PWA for tracking ING and Rabobank vacancies in the Netherlands. No OpenAI key, paid AI API, or subscription is required.
 
-## Included
-- Responsive Vice City / neon dashboard.
-- Search, bank filters, status filters, match filters, sorting, CSV export, saved/seen jobs.
-- Scheduled feed refresh through GitHub Actions on weekdays (06:17 and 14:17 UTC).
-- ING and Rabobank job discovery using the public GigSignal Netherlands-wide shortcut and Rabobank's official careers page when accessible.
-- Local PDF, DOCX and TXT CV text extraction; no CV upload to a server.
-- Keyword-based CV comparison, including a penalty flag for credit-risk modelling-heavy roles and roles requiring Dutch.
-- Tailored CV and cover-letter drafts, exported as Word-compatible `.doc` files.
-- PWA installation and offline shell caching.
+## Features
+- Vice City / neon dashboard, responsive layout and PWA installation.
+- Job search, bank/status filters, minimum-match filter, sorting, saved/seen jobs and CSV export.
+- Scheduled GitHub Actions feed refresh on weekdays at 06:17 and 14:17 UTC.
+- Public Netherlands-wide jobs feed plus best-effort extraction from official ING and Rabobank listing pages, following visible pagination links where available.
+- Local PDF, DOCX and TXT CV extraction. CV text stays in this browser's local storage and is not uploaded by the app.
+- After a CV is uploaded, the main job list calculates its match from the extracted CV text and available job text, and the existing sort/filter controls use that score. Without an uploaded CV, it uses the editable keyword profile.
+- CV Studio with detailed match analysis and Word-compatible CV / cover-letter drafts.
 
-## Install once
-1. Download and extract this ZIP.
-2. In your GitHub repository `Dadooo1950/bank-job-tracker`, replace the repository contents with the contents of the extracted `bank-job-tracker-main` folder. Keep the `.github/workflows` folder and its `update-jobs.yml` file.
-3. Commit the replacement to the `main` branch.
-4. In GitHub, open **Actions** and run **Update official bank vacancies** once (`Run workflow`). Wait for the workflow to finish successfully.
-5. Open GitHub Pages and refresh the app. On Android Chrome, if an older version remains, open the site settings and clear the site's stored data once, then reopen the Pages URL and install the PWA again.
+## Update GitHub Pages
+1. Extract the ZIP.
+2. In the GitHub repository, upload/replace the files from inside `bank-job-tracker-main` into the repository root. Include `.github/workflows/update-jobs.yml` if you are replacing the whole repository contents.
+3. Commit the changes to `main`.
+4. In GitHub → Actions, run **Update official bank vacancies** manually once and wait for completion.
+5. Open the GitHub Pages site. If an old version is cached on Android, clear that site's stored data in Chrome and reload.
 
-## Important data limits
-The public feed returns listings observed in the last two days; it is not a complete archive of every open vacancy. The API's `location=amsterdam` parameter is documented as a shortcut for Netherlands locations, not only Amsterdam. The public feed does not provide full job-posting text, so CV matching is based on the text/summary and structured facts available in the feed. Rabobank's official careers page may block automated access; when that happens the source status shows the error rather than pretending there are no vacancies. Always open the employer's official listing to confirm it is still active and read the full requirements.
+## Important vacancy coverage limits
+The public feed contains jobs observed in the last two days; it is not a complete archive of all open vacancies. The `location=amsterdam` parameter is a shortcut for Netherlands locations. The official ING and Rabobank listing pages are also queried by the scheduled workflow, but their websites control pagination and markup; the scraper follows visible Next links where possible, but automated extraction still cannot guarantee every active listing is imported. The app includes direct official links to the live Netherlands vacancy pages:
+- ING: https://careers.ing.com/en/location/netherlands-jobs/2618/2750405/2/en/en/search-jobs
+- Rabobank: https://rabobank.jobs/en/jobs/?country=nl
 
-## CV privacy and document quality
-CV parsing and matching run locally in the browser. The CV text and profile fields are stored in that browser's local storage until you delete them using **Obriši CV** or clear the site's data. PDF and DOCX parsing loads PDF.js/Mammoth from public CDNs when needed, so an internet connection is required for the first parse of those formats. Scanned image-only PDFs are not OCR'd. The generated documents reorganise existing CV content and use a factual cover-letter template; they are not generative-AI rewrites. Review all details, contact fields, dates and wording before applying.
+Always confirm a vacancy on the employer's website and read its full description before applying. The in-app match is only a text-based estimate and cannot confirm qualifications. The feed often contains a short summary rather than the complete vacancy text, so scores may be less precise.
 
-## Feed schedule
-The workflow runs Monday–Friday at 06:17 and 14:17 UTC (07:17 and 15:17 in Croatia during winter time; 08:17 and 16:17 during summer time). The in-app **Osvježi oglase** button reloads the latest saved feed; it does not start a new external search.
+## CV privacy and generated documents
+PDF/DOCX/TXT parsing and matching run locally in the browser. CV text and profile fields remain in that browser's local storage until deleted with **Obriši CV** or by clearing the site's data. PDF.js and Mammoth are loaded from public CDNs when needed; first-time PDF/DOCX parsing requires internet access. Scanned image-only PDFs are not OCR'd. Generated documents reorganise existing CV content and use a factual cover-letter template; they are not AI-generated rewrites. Review all details before submitting.
+
+## Workflow schedule
+Monday–Friday at 06:17 and 14:17 UTC (07:17 and 15:17 in Croatia in winter; 08:17 and 16:17 in summer). The in-app refresh button reloads the saved feed; it does not start a new bank search.

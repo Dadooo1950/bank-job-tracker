@@ -210,8 +210,8 @@
       "bank": "Rabobank official careers page",
       "status": "no_structured_jobs_found",
       "count": 0,
-      "source": "https://rabobank.jobs/nl/vacatures/"
+      "source": "https://rabobank.jobs/en/jobs/?country=nl"
     }
   ],
-  "note": "Listings are collected from the public GigSignal feed and Rabobank's official careers page when accessible. The public feed contains jobs observed in the last two days, so it is not a complete list of every open vacancy. The published field may represent first-seen date, not the employer's original publication date."
+  "note": "Listings are collected from the public GigSignal feed and best-effort extraction of official ING and Rabobank vacancy pages. The public feed contains jobs observed in the last two days; official pages may paginate or change markup, so the automated feed is not guaranteed to contain every active vacancy. Use the official links in the app for the complete live listings. The published field may represent first-seen date, not the employer's original publication date."
 }

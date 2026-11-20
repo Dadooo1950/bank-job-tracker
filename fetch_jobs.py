@@ -1,12 +1,14 @@
 import json
 import re
+from html.parser import HTMLParser
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 API_URL = "https://gigsignal-api.fly.dev/api/jobs?location=amsterdam"
-RABOBANK_URL = "https://rabobank.jobs/nl/vacatures/"
+RABOBANK_URL = "https://rabobank.jobs/en/jobs/?country=nl"
+ING_URL = "https://careers.ing.com/en/location/netherlands-jobs/2618/2750405/2/en/en/search-jobs"
 
 HEADERS = {
     "User-Agent": "BankJobTracker/1.0 (personal job search app)",
@@ -71,6 +73,81 @@ def extract_jsonld(html):
             continue
 
     return jobs
+
+
+class JobLinkParser(HTMLParser):
+    """Fallback extractor for official career listing pages without JSON-LD."""
+    def __init__(self):
+        super().__init__()
+        self.current = None
+        self.items = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == "a":
+            attrs = dict(attrs)
+            href = attrs.get("href", "")
+            if href:
+                self.current = {"href": href, "text": []}
+
+    def handle_data(self, data):
+        if self.current is not None:
+            self.current["text"].append(data)
+
+    def handle_endtag(self, tag):
+        if tag.lower() == "a" and self.current is not None:
+            self.items.append((self.current["href"], " ".join(self.current["text"]).strip()))
+            self.current = None
+
+def extract_official_link_jobs(html, bank, page_url):
+    parser = JobLinkParser()
+    parser.feed(html)
+    host = "careers.ing.com" if bank == "ING" else "rabobank.jobs"
+    prefix = "https://careers.ing.com" if bank == "ING" else "https://rabobank.jobs"
+    jobs = []
+    seen = set()
+    for href, title in parser.items:
+        if href.startswith("/"):
+            href = prefix + href
+        if not allowed_url(href, bank):
+            continue
+        if bank == "ING" and "/en/job/" not in href:
+            continue
+        if bank == "Rabobank" and "/en/job/" not in href:
+            continue
+        title = re.sub(r"\s+", " ", title).strip()
+        if not title or len(title) < 5 or href in seen:
+            continue
+        seen.add(href)
+        jobs.append({
+            "id": href.rstrip("/").split("/")[-1],
+            "bank": bank,
+            "title": title,
+            "location": "Netherlands",
+            "level": "Not specified",
+            "published": "",
+            "deadline": "",
+            "url": href,
+            "description": "",
+            "skills": [],
+            "source": f"{bank} official careers listing",
+            "employer": bank,
+            "verifiedOfficialLink": True,
+            "gist": None,
+            "facts": {},
+        })
+    return jobs
+
+
+def find_next_page(html, current_url, bank):
+    parser = JobLinkParser()
+    parser.feed(html)
+    for href, label in parser.items:
+        label = re.sub(r"\s+", " ", label).strip().lower()
+        if label in ("next", "next page", "volgende", "volgende pagina", "›", "»"):
+            candidate = urljoin(current_url, href)
+            if allowed_url(candidate, bank) and candidate != current_url:
+                return candidate
+    return None
 
 def normalize_api_job(item, bank):
     title = item.get("title")
@@ -150,6 +227,43 @@ def normalize_rabobank_job(item):
         "facts": {},
     }
 
+
+def normalize_ing_job(item):
+    title = item.get("title")
+    url = item.get("url")
+    if isinstance(url, dict):
+        url = url.get("url")
+    if not title or not url or not allowed_url(url, "ING"):
+        return None
+    location = item.get("jobLocation", "")
+    if isinstance(location, list):
+        location = location[0] if location else ""
+    if isinstance(location, dict):
+        address = location.get("address", {})
+        if isinstance(address, dict):
+            location = ", ".join(str(address.get(k, "")) for k in ("addressLocality", "addressRegion", "addressCountry") if address.get(k))
+    description = re.sub(r"<[^>]+>", " ", item.get("description") or "")
+    description = re.sub(r"\s+", " ", description).strip()
+    date = item.get("datePosted") or ""
+    return {
+        "id": str(item.get("identifier", {}).get("value") or url),
+        "bank": "ING",
+        "title": title,
+        "location": location or "Netherlands",
+        "level": "Not specified",
+        "published": date[:10],
+        "deadline": "",
+        "url": url,
+        "description": description,
+        "skills": [],
+        "source": "ING Careers",
+        "employer": "ING",
+        "verifiedOfficialLink": True,
+        "gist": None,
+        "facts": {},
+    }
+
+
 def main():
     jobs = []
     sources = []
@@ -195,36 +309,51 @@ def main():
             "detail": str(error),
         })
 
-    # Try Rabobank's official careers page as a separate source
-    try:
-        html = fetch(RABOBANK_URL, "text/html")
-        rabobank_items = extract_jsonld(html)
+    # Supplement the short-lived public feed with official vacancy listing pages.
+    # Follow their visible "Next" links, with a safety cap to avoid endless loops.
+    for bank, first_page_url in (("ING", ING_URL), ("Rabobank", RABOBANK_URL)):
+        page_url = first_page_url
+        visited_pages = set()
+        added_urls = set()
+        pages_checked = 0
+        try:
+            while page_url and page_url not in visited_pages and pages_checked < 20:
+                visited_pages.add(page_url)
+                html = fetch(page_url, "text/html")
+                pages_checked += 1
+                structured = extract_jsonld(html)
+                page_jobs = []
+                for item in structured:
+                    job = normalize_rabobank_job(item) if bank == "Rabobank" else normalize_ing_job(item)
+                    if job:
+                        page_jobs.append(job)
 
-        added = 0
-        existing_urls = {job["url"] for job in jobs}
+                if not page_jobs:
+                    page_jobs = extract_official_link_jobs(html, bank, page_url)
 
-        for item in rabobank_items:
-            job = normalize_rabobank_job(item)
-            if job and job["url"] not in existing_urls:
-                jobs.append(job)
-                existing_urls.add(job["url"])
-                added += 1
+                existing_urls = {job["url"] for job in jobs}
+                for job in page_jobs:
+                    if job["url"] not in existing_urls and job["url"] not in added_urls:
+                        jobs.append(job)
+                        added_urls.add(job["url"])
 
-        sources.append({
-            "bank": "Rabobank official careers page",
-            "status": "ok" if added else "no_structured_jobs_found",
-            "count": added,
-            "source": RABOBANK_URL,
-        })
+                page_url = find_next_page(html, page_url, bank)
 
-    except Exception as error:
-        sources.append({
-            "bank": "Rabobank official careers page",
-            "status": "fetch_error",
-            "count": 0,
-            "source": RABOBANK_URL,
-            "detail": str(error),
-        })
+            sources.append({
+                "bank": f"{bank} official careers page",
+                "status": "ok" if added_urls else "no_structured_jobs_found",
+                "count": len(added_urls),
+                "source": first_page_url,
+                "detail": f"Checked {pages_checked} listing page(s); pagination follows visible Next links, subject to employer page markup.",
+            })
+        except Exception as error:
+            sources.append({
+                "bank": f"{bank} official careers page",
+                "status": "fetch_error",
+                "count": len(added_urls),
+                "source": first_page_url,
+                "detail": f"Checked {pages_checked} page(s) before error: {error}",
+            })
 
     # Remove duplicate links
     unique_jobs = []
@@ -245,12 +374,13 @@ def main():
         "jobs": unique_jobs,
         "sources": sources,
         "note": (
-            "Listings are collected from the public GigSignal feed "
-            "and Rabobank's official careers page when accessible. "
-            "The public feed contains jobs observed in the last two days, "
-            "so it is not a complete list of every open vacancy. "
-            "The published field may represent first-seen date, not the "
-            "employer's original publication date."
+            "Listings are collected from the public GigSignal feed and "
+            "best-effort extraction of official ING and Rabobank vacancy pages. "
+            "The public feed contains jobs observed in the last two days; official "
+            "pages may paginate or change markup, so this automated feed is not "
+            "guaranteed to contain every active vacancy. Use the official source "
+            "links for the complete live listings. The published field may "
+            "represent first-seen date, not the employer's original publication date."
         ),
     }
 
