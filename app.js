@@ -92,8 +92,18 @@ function scoreJob(j) {
 }
 function bankLogo(bank) {
   const b=String(bank||'').toLowerCase();
-  if (b.includes('ing')) return `<img class="bank-logo ing-logo" src="https://commons.wikimedia.org/wiki/Special:FilePath/ING_Group_(wordmark).svg" alt="ING logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>ING</span>`;
-  if (b.includes('rabobank')) return `<img class="bank-logo rabo-logo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Rabobank%20text%20logo.svg" alt="Rabobank logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>Rabobank</span>`;
+  const known=[
+    ['ing','https://commons.wikimedia.org/wiki/Special:FilePath/ING_Group_(wordmark).svg','ING'],
+    ['rabobank','https://commons.wikimedia.org/wiki/Special:FilePath/Rabobank%20text%20logo.svg','Rabobank'],
+    ['abn','https://www.google.com/s2/favicons?domain=abnamro.com&sz=128','ABN AMRO'],
+    ['nibc','https://www.google.com/s2/favicons?domain=nibc.com&sz=128','NIBC'],
+    ['asn','https://www.google.com/s2/favicons?domain=asnbank.nl&sz=128','ASN'],
+    ['bunq','https://www.google.com/s2/favicons?domain=bunq.com&sz=128','bunq'],
+    ['de volksbank','https://www.google.com/s2/favicons?domain=devolksbank.nl&sz=128','de Volksbank'],
+    ['abnamro','https://www.google.com/s2/favicons?domain=abnamro.com&sz=128','ABN AMRO']
+  ];
+  const hit=known.find(x=>b.includes(x[0]));
+  if(hit) return `<img class="bank-logo ${hit[0]==='ing'?'ing-logo':hit[0]==='rabobank'?'rabo-logo':'other-bank-logo'}" src="${hit[1]}" alt="${hit[2]} logo" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bank-logo-fallback" hidden>${hit[2]}</span>`;
   return `<span class="bank-logo-fallback">${esc(bank||'BANK')}</span>`;
 }
 function openJobDetail(id) {
