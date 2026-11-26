@@ -1,6 +1,39 @@
 {
-  "updatedAt": "2026-11-25T15:15:31.634564+00:00",
+  "updatedAt": "2026-11-26T07:28:40.166142+00:00",
   "jobs": [
+    {
+      "id": "e978a858db96",
+      "bank": "ING",
+      "title": "Product Manager – Physical Workplace & Physical Security Services",
+      "location": "Netherlands, Amsterdam",
+      "level": "Not specified",
+      "published": "2026-11-25",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/product-manager-physical-workplace-and-physical-security-services/3121/47236555904",
+      "description": "Leads product management for physical workplace and security services, creating a unified strategy and roadmap across multiple domains. Suits a product manager with experience in product-led operating models, technology, and stakeholder management.",
+      "skills": [
+        "product management",
+        "technology",
+        "stakeholder management"
+      ],
+      "source": "ING",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": "Leads product management for physical workplace and security services, creating a unified strategy and roadmap across multiple domains. Suits a product manager with experience in product-led operating models, technology, and stakeholder management.",
+      "facts": {
+        "seniority": null,
+        "posting_language": "en",
+        "dutch_required": null,
+        "visa_or_relocation_support": null,
+        "work_mode": null,
+        "salary": null,
+        "skills": [
+          "product management",
+          "technology",
+          "stakeholder management"
+        ]
+      }
+    },
     {
       "id": "2354793af8d0",
       "bank": "ING",
@@ -41,78 +74,21 @@
       }
     },
     {
-      "id": "1639db28b075",
+      "id": "47232224192",
       "bank": "ING",
-      "title": "Internship Brand & Social Media: Creative",
-      "location": "Netherlands, Amsterdam",
-      "level": "intern",
-      "published": "2026-11-24",
+      "title": "PSS Payments Security Architect",
+      "location": "Netherlands",
+      "level": "Not specified",
+      "published": "",
       "deadline": "",
-      "url": "https://careers.ing.com/en/job/amsterdam/internship-brand-and-social-media-creative/3121/47177771008",
-      "description": "Develops social media content and assists with campaigns. Suits a student in communication, marketing or a creative field with social media experience.",
-      "skills": [
-        "Adobe Premiere Pro",
-        "Photoshop",
-        "Dutch",
-        "English",
-        "social media",
-        "content creation"
-      ],
-      "source": "ING",
+      "url": "https://careers.ing.com/en/job/amsterdam/pss-payments-security-architect/3121/47232224192",
+      "description": "",
+      "skills": [],
+      "source": "ING official careers listing",
       "employer": "ING",
       "verifiedOfficialLink": true,
-      "gist": "Develops social media content and assists with campaigns. Suits a student in communication, marketing or a creative field with social media experience.",
-      "facts": {
-        "seniority": "intern",
-        "posting_language": "en",
-        "dutch_required": true,
-        "visa_or_relocation_support": null,
-        "work_mode": "hybrid",
-        "salary": "700 EUR per week",
-        "skills": [
-          "Adobe Premiere Pro",
-          "Photoshop",
-          "Dutch",
-          "English",
-          "social media",
-          "content creation"
-        ]
-      }
-    },
-    {
-      "id": "6f5b348e5bc6",
-      "bank": "ING",
-      "title": "Stagiair Customer Journey Expert",
-      "location": "Netherlands, Amsterdam",
-      "level": "intern",
-      "published": "2026-11-24",
-      "deadline": "",
-      "url": "https://careers.ing.com/en/job/amsterdam/stagiair-customer-journey-expert/3121/47177770624",
-      "description": "Works on customer journeys related to saving, salary deposit and app usage, analyzing customer behavior, testing propositions and writing communication for various channels. Suits a student in business, economics, psychology or communication with a customer-focused and analytical mindset.",
-      "skills": [
-        "analytical thinking",
-        "creative approach",
-        "customer-focused",
-        "communication skills"
-      ],
-      "source": "ING",
-      "employer": "ING",
-      "verifiedOfficialLink": true,
-      "gist": "Works on customer journeys related to saving, salary deposit and app usage, analyzing customer behavior, testing propositions and writing communication for various channels. Suits a student in business, economics, psychology or communication with a customer-focused and analytical mindset.",
-      "facts": {
-        "seniority": "intern",
-        "posting_language": "nl",
-        "dutch_required": false,
-        "visa_or_relocation_support": null,
-        "work_mode": null,
-        "salary": "€ 700",
-        "skills": [
-          "analytical thinking",
-          "creative approach",
-          "customer-focused",
-          "communication skills"
-        ]
-      }
+      "gist": null,
+      "facts": {}
     },
     {
       "id": "45314692160",
@@ -293,6 +269,40 @@
       "published": "",
       "deadline": "",
       "url": "https://careers.ing.com/en/job/amsterdam/reward-expert/3121/47196458688",
+      "description": "",
+      "skills": [],
+      "source": "ING official careers listing",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": null,
+      "facts": {}
+    },
+    {
+      "id": "47177771008",
+      "bank": "ING",
+      "title": "Internship Brand & Social Media: Creative",
+      "location": "Netherlands",
+      "level": "Not specified",
+      "published": "",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/internship-brand-and-social-media-creative/3121/47177771008",
+      "description": "",
+      "skills": [],
+      "source": "ING official careers listing",
+      "employer": "ING",
+      "verifiedOfficialLink": true,
+      "gist": null,
+      "facts": {}
+    },
+    {
+      "id": "47177770624",
+      "bank": "ING",
+      "title": "Stagiair Customer Journey Expert",
+      "location": "Netherlands",
+      "level": "Not specified",
+      "published": "",
+      "deadline": "",
+      "url": "https://careers.ing.com/en/job/amsterdam/stagiair-customer-journey-expert/3121/47177770624",
       "description": "",
       "skills": [],
       "source": "ING official careers listing",
@@ -1224,7 +1234,7 @@
     {
       "bank": "ING",
       "status": "ok",
-      "count": 3,
+      "count": 2,
       "source": "GigSignal public jobs API"
     },
     {
@@ -1236,7 +1246,7 @@
     {
       "bank": "ING official careers page",
       "status": "ok",
-      "count": 45,
+      "count": 48,
       "source": "https://careers.ing.com/en/location/netherlands-jobs/2618/2750405/2/en/en/search-jobs",
       "detail": "Checked 4 listing page(s); pagination follows visible Next links, subject to employer page markup."
     },
